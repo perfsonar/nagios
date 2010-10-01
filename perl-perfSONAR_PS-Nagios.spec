@@ -29,7 +29,7 @@ Requires:               perl(Nagios::Plugin)
 Requires:               perl(Params::Validate)
 Requires:               perl(Statistics::Descriptive)
 Requires:               perl(Time::HiRes)
-Requires:               perl(XML::LibXML) >= 1.60
+Requires:               perl(XML::LibXML)
 #Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 Requires:       perl
 Requires:       coreutils
