@@ -42,6 +42,9 @@ $np->add_arg(spec => "b|bidirectional",
 $np->add_arg(spec => "l|loss",
              help => "Look at packet loss instead of delay.",
              required => 0 );
+$np->add_arg(spec => "errwarn",
+             help => "Communication and parsing errors throw WARNING",
+             required => 0 );
 $np->add_arg(spec => "r|range=i",
              help => "Time range (in seconds) in the past to look at data. i.e. 60 means look at last 60 seconds of data.",
              required => 1 );
@@ -57,6 +60,11 @@ $np->getopts;
 my $ma_url = $np->opts->{'u'};
 my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url } );
 my $stats = Statistics::Descriptive::Sparse->new();
+my $EXCEPTION_CODE = CRITICAL;
+if($np->opts->{'errwarn'}){
+    $EXCEPTION_CODE = WARNING;
+}
+
 
 #set metric
 my $metric = DELAY_FIELD;
@@ -78,7 +86,7 @@ if($stats->count() == 0 ){
     $errMsg .= " for direction where" if($np->opts->{'s'} || $np->opts->{'d'});
     $errMsg .= " src=" . $np->opts->{'s'} if($np->opts->{'s'});
     $errMsg .= " dst=" . $np->opts->{'d'} if($np->opts->{'d'});
-    $np->nagios_die($errMsg);
+    $np->nagios_exit($EXCEPTION_CODE, $errMsg);
 }
 
 #Grab the reverse direction if both source and destination provided
@@ -89,7 +97,7 @@ if($np->opts->{'b'} && $np->opts->{'s'} && $np->opts->{'d'}){
         my $errMsg = "No one-way delay data returned for direction where";
         $errMsg .= " src=" . $np->opts->{'d'};
         $errMsg .= " dst=" . $np->opts->{'s'};
-        $np->nagios_die($errMsg);
+        $np->nagios_exit($EXCEPTION_CODE, $errMsg);
     }
 }
 
@@ -157,7 +165,7 @@ sub send_data_request() {
                 subject    => $subject,
                 eventTypes => \@eventTypes
             }
-        ) or $np->nagios_die( "Error contacting MA $ma_url" . $@ );
+        ) or $np->nagios_exit( $EXCEPTION_CODE, "Error contacting MA $ma_url" . $@ );
     
     # Create parser
     my $parser = XML::LibXML->new();
@@ -190,7 +198,7 @@ sub send_data_request() {
         my $mdDoc;
         eval { $mdDoc = $parser->parse_string($md); };  
         if($@){
-            $np->nagios_die( "Error parsing metadata in MA response" . $@ );
+            $np->nagios_exit( $EXCEPTION_CODE, "Error parsing metadata in MA response" . $@ );
         }
         
         #record test
@@ -211,7 +219,7 @@ sub send_data_request() {
         my $doc;
         eval { $doc = $parser->parse_string( $data ); };  
         if($@){
-            $np->nagios_die( "Error parsing data in MA response" . $@ );
+            $np->nagios_exit( $EXCEPTION_CODE, "Error parsing data in MA response" . $@ );
         }
         
         my $mdIdRef = find($doc->getDocumentElement, "./\@metadataIdRef");
@@ -230,12 +238,12 @@ sub send_data_request() {
         
         #verify that reverse direction metadata exists. if both src and dst given then checked elsewhere
         if($bidir && (!$src || !$dst) && (!$mdIdMap{$mdIdRef} || !$mdEndpointMap{$mdIdMap{$mdIdRef}})){
-            $np->nagios_die( "Could not find definition for test " . $mdIdMap{$mdIdRef} . ", but found reverse test." );
+            $np->nagios_exit( $EXCEPTION_CODE, "Could not find definition for test " . $mdIdMap{$mdIdRef} . ", but found reverse test." );
         }
         
         my $owamp_data = find($doc->getDocumentElement, "./*[local-name()='datum']/$metric", 0);
         if( !defined $owamp_data){
-            $np->nagios_die( "Error extracting metric from MA response" );
+            $np->nagios_exit( $EXCEPTION_CODE, "Error extracting metric from MA response" );
         }
         
         foreach my $owamp_datum (@{$owamp_data}) {
@@ -253,7 +261,7 @@ sub send_data_request() {
             #NOTE: No error thrown if neither side has data. Presumably a host
             #   may be down, etc and we don't want all tests to die
             if($mdEndpointMap{$has_data_key} != HAS_DATA && $mdEndpointMap{$rev_key} == HAS_DATA){
-                $np->nagios_die("Found data for $has_data_key, but could not find reverse test.");
+                $np->nagios_exit( $EXCEPTION_CODE, "Found data for $has_data_key, but could not find reverse test.");
             }
         }
     }
