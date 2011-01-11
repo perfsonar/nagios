@@ -158,8 +158,7 @@ sub send_data_request {
     }
     
     # parse metadata and determine which tests have matching endpoints
-    my %excludedTests = ();   
-    $excludedTests{'top'} = 1;
+    my %excludedTests = ();
     my %mdIdMap = ();
     my %mdEndpointMap = ();
     foreach my $md (@{$result->{"metadata"}}) {

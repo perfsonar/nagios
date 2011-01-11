@@ -7,6 +7,7 @@ use FindBin qw($RealBin);
 use lib "$RealBin/../lib/";
 use Nagios::Plugin;
 use Data::Validate::IP qw(is_ipv4 is_ipv6);
+use Socket;
 use Statistics::Descriptive;
 use perfSONAR_PS::Common qw( find findvalue );
 use perfSONAR_PS::Client::MA;
@@ -80,25 +81,12 @@ if($np->opts->{'l'}){
 
 #call client
 &send_data_request($ma, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $metric, $np->opts->{'b'}, $stats);
-my $srcToDstResults = $stats->count();
 if($stats->count() == 0 ){
     my $errMsg = "No one-way delay data returned";
     $errMsg .= " for direction where" if($np->opts->{'s'} || $np->opts->{'d'});
     $errMsg .= " src=" . $np->opts->{'s'} if($np->opts->{'s'});
     $errMsg .= " dst=" . $np->opts->{'d'} if($np->opts->{'d'});
     $np->nagios_exit($EXCEPTION_CODE, $errMsg);
-}
-
-#Grab the reverse direction if both source and destination provided
-if($np->opts->{'b'} && $np->opts->{'s'} && $np->opts->{'d'}){
-    &send_data_request($ma, $np->opts->{'d'}, $np->opts->{'s'}, $np->opts->{'r'}, $metric, $np->opts->{'b'}, $stats);
-    #If bidirectional, verify we got data from this direction
-    if($srcToDstResults == $stats->count()){
-        my $errMsg = "No one-way delay data returned for direction where";
-        $errMsg .= " src=" . $np->opts->{'d'};
-        $errMsg .= " dst=" . $np->opts->{'s'};
-        $np->nagios_exit($EXCEPTION_CODE, $errMsg);
-    }
 }
 
 # format nagios output
@@ -140,17 +128,13 @@ $np->nagios_exit($code, $msg);
 #### SUBROUTINES
 sub send_data_request() {
     my ($ma, $src, $dst, $time_int, $metric, $bidir, $stats) = @_;
+    my %endpoint_addrs = ();
+    $endpoint_addrs{"src"} = &get_ip_and_host($src) if($src);
+    $endpoint_addrs{"dst"} = &get_ip_and_host($dst) if($dst);
     
     # Define subject
     my $subject = "<owamp:subject xmlns:owamp=\"http://ggf.org/ns/nmwg/tools/owamp/2.0/\" id=\"subject\">\n";
-    if($src && $dst){
-        $subject .=   "    <nmwgt:endPointPair xmlns:nmwgt=\"http://ggf.org/ns/nmwg/topology/2.0/\">";
-        $subject .=   "        <nmwgt:src type=\"" . &get_endpoint_type( $src ) . "\" value=\"" . $src . "\"/>";
-        $subject .=   "        <nmwgt:dst type=\"" . &get_endpoint_type( $dst ) . "\" value=\"" . $dst . "\"/>";
-        $subject .=   "    </nmwgt:endPointPair>";
-    }else{
-        $subject .= "      <nmwgt:endPointPair xmlns:nmwgt=\"http://ggf.org/ns/nmwg/topology/2.0/\"/>\n";
-    }
+    $subject .= "      <nmwgt:endPointPair xmlns:nmwgt=\"http://ggf.org/ns/nmwg/topology/2.0/\"/>\n";
     $subject .=   "</owamp:subject>\n";
     
     # Set eventType
@@ -171,16 +155,11 @@ sub send_data_request() {
     my $parser = XML::LibXML->new();
     
     #determine which endpoints we care about
-    my @endpointsToCheck = ();
-    my $target = "";
+    my $endpointToCheck = "";
     if($src){
-        $target = $src;
-        push @endpointsToCheck, "src";
-        push @endpointsToCheck, "dst" if($bidir);
+        $endpointToCheck = "src";
     }elsif($dst){
-        $target = $dst;
-        push @endpointsToCheck, "dst";
-        push @endpointsToCheck, "src" if($bidir);
+        $endpointToCheck = "dst";
     }
     
     # parse metadata and determine which tests have matching endpoints
@@ -188,9 +167,6 @@ sub send_data_request() {
     my %mdIdMap = ();
     my %mdEndpointMap = ();
     foreach my $md (@{$result->{"metadata"}}) {
-        if($src && $dst){
-            last;
-        }
         if(!$src && !$dst && !$bidir){
             last;
         }
@@ -211,7 +187,11 @@ sub send_data_request() {
         }
         
         #This code sets which tests should be ignored because they don't contain the correct endpoints
-        &check_exclude_test(\@endpointsToCheck, $mdDoc, $target, \%excludedTests);
+        if($src && $dst){
+            &check_exclude_two_endpoints($mdDoc, \%endpoint_addrs, $bidir, \%excludedTests);
+        }else{
+            &check_exclude_one_endpoint( $mdDoc, \%endpoint_addrs, $endpointToCheck, $bidir, \%excludedTests);
+        }
     }
     
     #parse data
@@ -267,7 +247,7 @@ sub send_data_request() {
     }
 }
 
-sub get_endpoint_type() {
+sub get_endpoint_type {
     my $endpoint = shift @_;
     my $type = "hostname";
     
@@ -278,6 +258,95 @@ sub get_endpoint_type() {
     }
     
     return $type;
+}
+
+sub get_ip_and_host {
+    my ( $endpoint ) = @_;
+    
+    my $ip = "";
+    my $hostname = "";
+    
+    if( is_ipv4($endpoint) ){
+        $ip = $endpoint;
+        my $tmp_addr = Socket::inet_aton( $endpoint );
+        if ( defined $tmp_addr and $tmp_addr ) {
+            $hostname = gethostbyaddr( $tmp_addr, Socket::AF_INET );
+        }
+        $hostname = $endpoint unless $hostname;
+    }elsif( is_ipv6($endpoint) ){
+        $ip = $endpoint;
+        #try to lookup v6 record?
+        $hostname = $endpoint;
+    }else{
+        #if not ipv4 or ipv6 then assume a hostname
+        $hostname = $endpoint;
+        my $packed_ip = gethostbyname( $endpoint );
+        if ( defined $packed_ip and $packed_ip ) {
+            $ip = inet_ntoa( $packed_ip );
+        }
+        $ip = $endpoint unless $ip;
+    }
+    
+    return { 'ip' => $ip, 'hostname' => $hostname };
+}
+
+sub check_exclude_one_endpoint {
+    my ($doc, $endpoint_addrs, $type, $bidir, $excludedTests) = @_;
+    
+    my $mdSrc = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='src']/\@value");        
+    my $mdDst = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='dst']/\@value");
+    my $mdId = find($doc->getDocumentElement, "./\@id");
+    
+    #determine whether we should compare the source or dest first
+    my $firstCheck = $mdSrc;
+    my $secondCheck = $mdDst;
+    if($type eq 'dst'){
+        $firstCheck = $mdDst;
+        $secondCheck = $mdSrc;
+    }
+    
+    if( &endpoint_matches($firstCheck, $endpoint_addrs->{$type}) ){
+        $excludedTests->{"$mdId"} = 0;
+    }elsif($bidir && 
+            &endpoint_matches($secondCheck, $endpoint_addrs->{$type}) ) {
+        $excludedTests->{"$mdId"} = 0;
+    }else{
+        $excludedTests->{"$mdId"} = 1;
+    }
+    
+    #print "$mdSrc -> $mdDst\n" if ($excludedTests->{"$mdId"} == 0);
+}
+
+sub check_exclude_two_endpoints {
+    my ($doc, $endpoint_addrs, $bidir, $excludedTests) = @_;
+    
+    my $mdSrc = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='src']/\@value");        
+    my $mdDst = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='dst']/\@value");
+    my $mdId = find($doc->getDocumentElement, "./\@id");
+    
+    if( &endpoint_matches($mdSrc, $endpoint_addrs->{"src"})  && 
+        &endpoint_matches($mdDst, $endpoint_addrs->{"dst"}) ){
+        $excludedTests->{"$mdId"} = 0;
+    }elsif($bidir && 
+            &endpoint_matches($mdSrc, $endpoint_addrs->{"dst"})  && 
+            &endpoint_matches($mdDst, $endpoint_addrs->{"src"}) ) {
+        $excludedTests->{"$mdId"} = 0;
+    }else{
+        $excludedTests->{"$mdId"} = 1;
+    }
+    #print "$mdSrc -> $mdDst\n" if ($excludedTests->{"$mdId"} == 0);
+}
+
+sub endpoint_matches {
+    my( $ep1, $ep2 ) = @_;
+    
+    foreach my $ep2_type(keys %{ $ep2 }){
+        if( $ep1."" eq $ep2->{$ep2_type} ){
+            return 1;
+        }
+    }
+    
+    return 0;
 }
 
 sub check_exclude_test() {
@@ -298,7 +367,7 @@ sub check_exclude_test() {
     }
 }
 
-sub record_endpoints() {
+sub record_endpoints {
     my ($doc, $mdIdMap, $mdEndpointMap) = @_;
     my $src = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='src']/\@value");
     my $dst = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='dst']/\@value");
