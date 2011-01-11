@@ -7,10 +7,12 @@ use FindBin qw($RealBin);
 use lib "$RealBin/../lib/";
 use Nagios::Plugin;
 use Data::Validate::IP qw(is_ipv4 is_ipv6);
+use Socket;
 use Statistics::Descriptive;
 use perfSONAR_PS::Common qw( find findvalue );
 use perfSONAR_PS::Client::MA;
 use XML::LibXML;
+
 
 use constant BW_SCALE => 10e8;
 use constant BW_LABEL => 'Gbps';
@@ -18,7 +20,7 @@ use constant HAS_METADATA => 1;
 use constant HAS_DATA => 2;
 
 my $np = Nagios::Plugin->new( shortname => 'PS_CHECK_THROUGHPUT',
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold>" );
+                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -v|--verbose" );
 
 #get arguments
 $np->add_arg(spec => "u|url=s",
@@ -60,38 +62,47 @@ if($stats->count() == 0 ){
     $np->nagios_die($errMsg);
 }
 
-#Grab the reverse direction if both source and destination provided
-if($np->opts->{'b'} && $np->opts->{'s'} && $np->opts->{'d'}){
-    &send_data_request($ma, $np->opts->{'d'}, $np->opts->{'s'}, $np->opts->{'r'}, $np->opts->{'b'}, $stats);
-    #If bidirectional, verify we got data from this direction
-    if($srcToDstResults == $stats->count()){
-        my $errMsg = "No throughput data returned for direction where";
-        $errMsg .= " src=" . $np->opts->{'d'};
-        $errMsg .= " dst=" . $np->opts->{'s'};
-        $np->nagios_die($errMsg);
-    }
-}
-
 # format nagios output
 $np->add_perfdata(
         label => 'Count',
         value => $stats->count(),
     );
+    
+#Note: adding variable for each stat to avoid unitialized value errors
+my $min = $stats->min();
+if(!(defined $min && $min)){
+    $min = 0;
+}
 $np->add_perfdata(
         label => 'Min',
-        value => $stats->min()/BW_SCALE . BW_LABEL,
+        value => $min/BW_SCALE . BW_LABEL,
     );
+    
+my $max = $stats->max();
+if(!(defined $max && $max)){
+    $max = 0;
+}
 $np->add_perfdata(
         label => 'Max',
-        value => $stats->max()/BW_SCALE . BW_LABEL,
+        value => $max/BW_SCALE . BW_LABEL,
     );
+    
+my $mean = $stats->mean();
+if(!(defined $mean && $mean)){
+    $mean = 0;
+}
 $np->add_perfdata(
         label => 'Average',
-        value => $stats->mean()/BW_SCALE . BW_LABEL,
+        value => $mean/BW_SCALE . BW_LABEL,
     );
+    
+my $stddev = $stats->standard_deviation();
+if(!(defined $stddev && $stddev)){
+    $stddev = 0;
+}
 $np->add_perfdata(
         label => 'Standard_Deviation',
-        value => $stats->standard_deviation()/BW_SCALE . BW_LABEL,
+        value => $stddev/BW_SCALE . BW_LABEL,
     );
 
 my $code = $np->check_threshold(
@@ -110,19 +121,15 @@ $np->nagios_exit($code, $msg);
 
 
 #### SUBROUTINES
-sub send_data_request() {
+sub send_data_request {
     my ($ma, $src, $dst, $time_int, $bidir, $stats) = @_;
+    my %endpoint_addrs = ();
+    $endpoint_addrs{"src"} = &get_ip_and_host($src) if($src);
+    $endpoint_addrs{"dst"} = &get_ip_and_host($dst) if($dst);
     
     # Define subject
     my $subject = "<iperf:subject xmlns:iperf=\"http://ggf.org/ns/nmwg/tools/iperf/2.0\" id=\"subject\">\n";
-    if($src && $dst){
-        $subject .=   "    <nmwgt:endPointPair xmlns:nmwgt=\"http://ggf.org/ns/nmwg/topology/2.0/\">";
-        $subject .=   "        <nmwgt:src type=\"" . &get_endpoint_type( $src ) . "\" value=\"" . $src . "\"/>";
-        $subject .=   "        <nmwgt:dst type=\"" . &get_endpoint_type( $dst ) . "\" value=\"" . $dst . "\"/>";
-        $subject .=   "    </nmwgt:endPointPair>";
-    }else{
-        $subject .= "      <nmwgt:endPointPair xmlns:nmwgt=\"http://ggf.org/ns/nmwg/topology/2.0/\"/>\n";
-    }
+    $subject .= "      <nmwgt:endPointPair xmlns:nmwgt=\"http://ggf.org/ns/nmwg/topology/2.0/\"/>\n";
     $subject .=   "</iperf:subject>\n";
     
     # Set eventType
@@ -143,26 +150,19 @@ sub send_data_request() {
     my $parser = XML::LibXML->new();
     
     #determine which endpoints we care about
-    my @endpointsToCheck = ();
-    my $target = "";
+    my $endpointToCheck = "";
     if($src){
-        $target = $src;
-        push @endpointsToCheck, "src";
-        push @endpointsToCheck, "dst" if($bidir);
+        $endpointToCheck = "src";
     }elsif($dst){
-        $target = $dst;
-        push @endpointsToCheck, "dst";
-        push @endpointsToCheck, "src" if($bidir);
+        $endpointToCheck = "dst";
     }
     
     # parse metadata and determine which tests have matching endpoints
-    my %excludedTests = ();    
+    my %excludedTests = ();   
+    $excludedTests{'top'} = 1;
     my %mdIdMap = ();
     my %mdEndpointMap = ();
     foreach my $md (@{$result->{"metadata"}}) {
-        if($src && $dst){
-            last;
-        }
         if(!$src && !$dst && !$bidir){
             last;
         }
@@ -183,7 +183,11 @@ sub send_data_request() {
         }
         
         #This code sets which tests should be ignored because they don't contain the correct endpoints
-        &check_exclude_test(\@endpointsToCheck, $mdDoc, $target, \%excludedTests);
+        if($src && $dst){
+            &check_exclude_two_endpoints($mdDoc, \%endpoint_addrs, $bidir, \%excludedTests);
+        }else{
+            &check_exclude_one_endpoint( $mdDoc, \%endpoint_addrs, $endpointToCheck, $bidir, \%excludedTests);
+        }
     }
     
     #parse data
@@ -199,7 +203,6 @@ sub send_data_request() {
             next;
         }
         
-        #skip tests without matching endpoints
         if($excludedTests{"$mdIdRef"}){
             #make sure that irrelevant tests aren't a factor when checking bidirectionality
             if($bidir && (!$src || !$dst) && $mdIdMap{$mdIdRef}){
@@ -239,7 +242,7 @@ sub send_data_request() {
     }
 }
 
-sub get_endpoint_type() {
+sub get_endpoint_type {
     my $endpoint = shift @_;
     my $type = "hostname";
     
@@ -252,25 +255,96 @@ sub get_endpoint_type() {
     return $type;
 }
 
-sub check_exclude_test() {
-    my ( $types, $doc, $target, $excludedTests) = @_;
+sub get_ip_and_host {
+    my ( $endpoint ) = @_;
     
-    if(!$target){
-        return;
+    my $ip = "";
+    my $hostname = "";
+    
+    if( is_ipv4($endpoint) ){
+        $ip = $endpoint;
+        my $tmp_addr = Socket::inet_aton( $endpoint );
+        if ( defined $tmp_addr and $tmp_addr ) {
+            $hostname = gethostbyaddr( $tmp_addr, Socket::AF_INET );
+        }
+        $hostname = $endpoint unless $hostname;
+    }elsif( is_ipv6($endpoint) ){
+        $ip = $endpoint;
+        #try to lookup v6 record?
+        $hostname = $endpoint;
+    }else{
+        #if not ipv4 or ipv6 then assume a hostname
+        $hostname = $endpoint;
+        my $packed_ip = gethostbyname( $endpoint );
+        if ( defined $packed_ip and $packed_ip ) {
+            $ip = inet_ntoa( $packed_ip );
+        }
+        $ip = $endpoint unless $ip;
     }
     
-    my %targetMap = ();
-    foreach my $type(@{$types}){
-        my $ep = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='$type']/\@value");        
-        $targetMap{$ep.""} = $type;
-    }
-    if(!$targetMap{$target}){
-        my $mdId = find($doc->getDocumentElement, "./\@id");
-        $excludedTests->{"$mdId"} = 1;
-    }
+    return { 'ip' => $ip, 'hostname' => $hostname };
 }
 
-sub record_endpoints() {
+sub check_exclude_one_endpoint {
+    my ($doc, $endpoint_addrs, $type, $bidir, $excludedTests) = @_;
+    
+    my $mdSrc = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='src']/\@value");        
+    my $mdDst = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='dst']/\@value");
+    my $mdId = find($doc->getDocumentElement, "./\@id");
+    
+    #determine whether we should compare the source or dest first
+    my $firstCheck = $mdSrc;
+    my $secondCheck = $mdDst;
+    if($type eq 'dst'){
+        $firstCheck = $mdDst;
+        $secondCheck = $mdSrc;
+    }
+    
+    if( &endpoint_matches($firstCheck, $endpoint_addrs->{$type}) ){
+        $excludedTests->{"$mdId"} = 0;
+    }elsif($bidir && 
+            &endpoint_matches($secondCheck, $endpoint_addrs->{$type}) ) {
+        $excludedTests->{"$mdId"} = 0;
+    }else{
+        $excludedTests->{"$mdId"} = 1;
+    }
+    
+    #print "$mdSrc -> $mdDst\n" if ($np->opts->{'v'} && $excludedTests->{"$mdId"} == 0);
+}
+
+sub check_exclude_two_endpoints {
+    my ($doc, $endpoint_addrs, $bidir, $excludedTests) = @_;
+    
+    my $mdSrc = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='src']/\@value");        
+    my $mdDst = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='dst']/\@value");
+    my $mdId = find($doc->getDocumentElement, "./\@id");
+    
+    if( &endpoint_matches($mdSrc, $endpoint_addrs->{"src"})  && 
+        &endpoint_matches($mdDst, $endpoint_addrs->{"dst"}) ){
+        $excludedTests->{"$mdId"} = 0;
+    }elsif($bidir && 
+            &endpoint_matches($mdSrc, $endpoint_addrs->{"dst"})  && 
+            &endpoint_matches($mdDst, $endpoint_addrs->{"src"}) ) {
+        $excludedTests->{"$mdId"} = 0;
+    }else{
+        $excludedTests->{"$mdId"} = 1;
+    }
+    #print "$mdSrc -> $mdDst\n" if ($np->opts->{'v'} && $excludedTests->{"$mdId"} == 0);
+}
+
+sub endpoint_matches {
+    my( $ep1, $ep2 ) = @_;
+    
+    foreach my $ep2_type(keys %{ $ep2 }){
+        if( $ep1."" eq $ep2->{$ep2_type} ){
+            return 1;
+        }
+    }
+    
+    return 0;
+}
+
+sub record_endpoints {
     my ($doc, $mdIdMap, $mdEndpointMap) = @_;
     my $src = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='src']/\@value");
     my $dst = find($doc->getDocumentElement, "./*[local-name()='subject']/*[local-name()='endPointPair']/*[local-name()='dst']/\@value");
