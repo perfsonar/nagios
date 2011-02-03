@@ -2,11 +2,11 @@
 %define install_base /opt/perfsonar_ps/nagios
 %define _topdir  /home/sowmya/rpm
 
-%define relnum 11
+%define relnum 1
 %define disttag pSPS
 
 Name:           perl-perfSONAR_PS-Nagios-Plugins
-Version:        3.1
+Version:        3.2
 Release:        %{relnum}.%{disttag}
 Summary:        perfSONAR_PS Nagios Plugins
 License:        distributable, see LICENSE
