@@ -3,15 +3,16 @@
 INTRODUCTION
 The set of plugins are used to check the health of the various perfSONAR services
 that have been deployed on various hosts and have been collecting data for quite sometime.
-Currently there are 8 plugins available. They are:
+Currently there are 9 plugins available. They are:
 	1. check_gls.pl
 	2. check_hls.pl
-	3. check_pinger.pl
-	4. check_topology.pl
-	5. check_snmp.pl
-	6. check_throughput.pl
-	7. check_owdelay.pl
-	8. check_perfSONAR.pl
+        3. check_ls.pl
+	4. check_pinger.pl
+	5. check_topology.pl
+	6. check_snmp.pl
+	7. check_throughput.pl
+	8. check_owdelay.pl
+	9. check_perfSONAR.pl
 
 INSTALLATION REQUIREMENTS
 The plugins require Perl(>5.0) and Nagios. Additionally, please ensure that
@@ -145,7 +146,35 @@ Examples:
 	  Multiple GLS
 	  check_hls.pl -c 5: -w 10: -g http://ps1.es.net:9990/perfSONAR_PS/services/gLS -t bwctl -i /path/to/file
 
-3. CHECK_PINGER.PL
+3. CHECK_LS.PL
+
+This plugin searches the contents of the Global Lookup Service(GLS) and returns the number of HLSes found based on the search criteria specified. When none of the search options are specified, it returns all the HLSes found in the GLS.
+
+Input options:
+-?, --usage
+   Print usage information
+-h, --help
+   Print detailed help screen
+-V, --version
+   Print version information
+--extra-opts=[section][@file]
+   Read options from an ini file. See http://nagiosplugins.org/extra-opts
+   for usage and examples.
+-u, --url=STRING
+   URL of the Lookup Service to contact.
+-t, --timeout=INTEGER
+   Seconds before plugin times out (default: 15)
+-v, --verbose
+   Show details for command-line debugging (can repeat up to 3 times)
+
+Output:
+Nagios state: OK, WARNING, CRITICAL or UNKNOWN.
+
+Examples:
+    * Check if the LS is running at the given URL
+    ./bin/check_ls.pl -u http://ps2.es.net:8095/perfSONAR_PS/services/hLS
+	
+4. CHECK_PINGER.PL
 
 This plugin queries PINGER MA to check if the RTT between the given source and destination for the given time interval is within the specified range.
 
@@ -181,7 +210,7 @@ Examples:
 	* Check the average RTT between atla-owamp.es.net and anl-owamp.es.net during the last 3 hours
 	  check_pinger.pl -u http://atla-owamp.es.net:8075/perfSONAR_PS/services/pinger/ma -w @17:20 -c @20: -r 1800 -s  atla-owamp.es.net  -d anl-owamp.es.net -k meanRtt -f average
 
-4. CHECK_TOPOLOGY.PL
+5. CHECK_TOPOLOGY.PL
 
 This plugin queries the given topology URL to check if the topology has the specified number of nodes in its topology map.
 
@@ -212,7 +241,7 @@ Examples:
 								OR
 	check_topology.pl -w 70: -c 50: -u http://ps3.es.net:8012/perfSONAR_PS/services/topology -d es.net -n http://ogf.org/schema/network/topology/ctrlPlane/20080828/
 
-5. CHECK_SNMP.PL
+6. CHECK_SNMP.PL
 This plugin queries the given SNMP MA to check if the average utilization of the test with given parameters is within the specified range.
 
 Input options:
@@ -242,7 +271,7 @@ Examples:
 	* Check if the average utilization on the outbound traffic on interface 206.196.182.4  is below 7Gbps during the last 1 hour
 	  check_snmp.pl-u http://desk172.internet2.edu:9990/perfSONAR_PS/services/SNMPMA -d out -i 206.196.182.4 -t 60 -c ~:7e+9 -w ~:5e+9
 
-6. CHECK_THROUGHPUT
+7. CHECK_THROUGHPUT
 
 This plugin queries the given MA to check if a particular src-dst pair’s throughput is within the specified range.
 
@@ -300,8 +329,7 @@ Examples:
 
 
 
-
-7. CHECK_OWAMP.PL
+8. CHECK_OWAMP.PL
 
 This plugin queries OWAMP MA to check if the test between given source and destination is within the specified range.
 
@@ -400,7 +428,7 @@ Examples:
 
 
 
-8. CHECK_PERFSONAR.PL <URL> <FILE>
+9. CHECK_PERFSONAR.PL <URL> <FILE>
 
 Sends a request to the perfSONAR service specified by the given URL and throws critical if it does not get a response. It can send an echo request, a SetupDataRequest, or a custom request (by specifying an XML file).
 
