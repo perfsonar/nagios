@@ -2,6 +2,7 @@ MANIFEST
 Makefile
 bin/check_gls.pl
 bin/check_hls.pl
+bin/check_ls.pl
 bin/check_owdelay.pl
 bin/check_perfSONAR.pl
 bin/check_pinger.pl
