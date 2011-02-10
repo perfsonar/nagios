@@ -148,7 +148,7 @@ Examples:
 
 3. CHECK_LS.PL
 
-This plugin searches the contents of the Global Lookup Service(GLS) and returns the number of HLSes found based on the search criteria specified. When none of the search options are specified, it returns all the HLSes found in the GLS.
+Verifies that the lookup service is running. Unlike check_gls and check_hls it does not alert based on the number of services registered. This is intended to be a simple service health check.
 
 Input options:
 -?, --usage
