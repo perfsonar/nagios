@@ -3,8 +3,6 @@
 use strict;
 use warnings;
 
-use lib "/home/jason/release/trunk/Shared/lib";
-
 our $VERSION = "3.2.1";
 
 =head1 NAME
