@@ -305,7 +305,7 @@ sub printRSVBrief {
     my ( @args ) = @_;
     my $parameters = validateParams( @args, { metricStatus => 1, summaryData => 1, detailsData => 1 } );
 
-    my $msg = "RSV BRIEF RESULTS\n";
+    my $msg = "RSV BRIEF RESULTS:\n";
     $msg .= $parameters->{metricStatus} . "\n";
     $msg .= $parameters->{summaryData} . "\n";
     $msg .= $parameters->{detailsData} . "\n";
