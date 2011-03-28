@@ -130,7 +130,12 @@ if($mode eq "SpecifiedServices"){
 		$value = $serviceMap{$key};
 	}
 		push(@serviceQuery,$value);
-	
+	    if($value =~ /\/$/){
+	        my $tmpvalue = s/\/$//;
+	        push(@serviceQuery,$tmpvalue);
+	    }else{
+	        push(@serviceQuery,$value . '/');
+	    }
 	}
 }
 
@@ -188,7 +193,7 @@ my $client = new perfSONAR_PS::Client::LS(
            	instance => $url
         }
     );
-    
+        
 # Create XQuery
 		my $xquery='';
 		$xquery = "declare namespace nmwg=\"http://ggf.org/ns/nmwg/base/2.0/\";\n";
@@ -209,7 +214,7 @@ my $client = new perfSONAR_PS::Client::LS(
 			
 		}elsif($mode eq "SpecifiedServices" && $keywordsearch ne ''){
 			my $serviceType = $serviceQuery[0];
-			$xquery .= "where some \$eventType in \$data/nmwg:metadata/nmwg:eventType satisfies ( ((\$eventType=\"$serviceType\")\n";
+			$xquery .= "where some \$eventType in \$data/nmwg:metadata/nmwg:eventType satisfies ( ((\$eventType=\"$serviceType\" or )\n";
 			for(my $i=1;$i<@serviceQuery;$i+=1){
 					$xquery .= " or (\$eventType=\"$serviceQuery[$i]\") \n";
 			}
