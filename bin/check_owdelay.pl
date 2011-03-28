@@ -61,7 +61,7 @@ $np->getopts;
 my $ma_url = $np->opts->{'u'};
 my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url } );
 my $stats = Statistics::Descriptive::Sparse->new();
-my $EXCEPTION_CODE = CRITICAL;
+my $EXCEPTION_CODE = UNKNOWN;
 if($np->opts->{'errwarn'}){
     $EXCEPTION_CODE = WARNING;
 }
