@@ -17,7 +17,7 @@ $np->add_arg(spec => "u|url=s",
              help => "URL of the lookup service(HLS) to contact. If more than one use -f option",
              required => 0 );
 $np->add_arg(spec => "t|type=s",
-             help => "type of service. Specify more than separated by comma. 'all' or specify nothning - for all services",
+             help => "type of service. Specify more than separated by comma. 'all' or specify nothing - for all services",
              required => 0);
 $np->add_arg(spec => "w|warning=s",
              help => "threshold of service count that leads to WARNING status",
@@ -214,7 +214,7 @@ my $client = new perfSONAR_PS::Client::LS(
 			
 		}elsif($mode eq "SpecifiedServices" && $keywordsearch ne ''){
 			my $serviceType = $serviceQuery[0];
-			$xquery .= "where some \$eventType in \$data/nmwg:metadata/nmwg:eventType satisfies ( ((\$eventType=\"$serviceType\" or )\n";
+			$xquery .= "where some \$eventType in \$data/nmwg:metadata/nmwg:eventType satisfies ( ((\$eventType=\"$serviceType\")\n";
 			for(my $i=1;$i<@serviceQuery;$i+=1){
 					$xquery .= " or (\$eventType=\"$serviceQuery[$i]\") \n";
 			}
