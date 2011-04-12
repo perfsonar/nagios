@@ -71,7 +71,7 @@ my $stats = Statistics::Descriptive::Sparse->new();
 my $checker = new perfSONAR_PS::ServiceChecks::ThroughputCheck;
 
 #call client
-my $result = $checker->doCheck($ma, $src, $dst, $DEFAULT_TIME_RANGE, $DEFAULT_CHECK_BIDIRECTIONAL, $stats);
+my $result = $checker->doCheck($ma, $src, $dst, $DEFAULT_TIME_RANGE, $DEFAULT_CHECK_BIDIRECTIONAL, '', $stats);
 
 if($result){
     print printRSVBrief( metricStatus => "UNKNOWN" , summaryData => "Error retrieving data", detailsData => $result );

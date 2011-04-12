@@ -285,6 +285,8 @@ Input options:
 
 -r|--range - (Required)	Time range (in seconds) in the past to look at data. i.e. 60 means look at last 60 seconds of data
 
+-p|protocol - (Optional) The protocol used by the test to check (e.g. TCP or UDP)
+
 -b|--bidirectional - (Optional) Indicates that test should be checked in each direction.
 
 -w|--warning - (Required) If the throughput goes below or above this value, WARNING status is shown in Nagios . Please refer to Nagios documentation for details about setting this value.
@@ -326,6 +328,10 @@ Examples:
     * Check throughput for all tests in the given MA. Alert if any of the tests do not have data in both directions
 
           check_throughput.pl -u http://bnl-pt1.es.net:8085/perfSONAR_PS/services/pSB -r 3600 -w 1: -c .5: -b 
+   
+   * Check throughput for all UDP tests in the given MA. Alert if any of the tests do not have data in both directions
+
+          check_throughput.pl -u http://bnl-pt1.es.net:8085/perfSONAR_PS/services/pSB -r 3600 -p UDP -w 1: -c .5: -b 
 
 
 

@@ -24,7 +24,7 @@ sub new {
 }
 
 sub doCheck {
-    my ($self, $ma, $src, $dst, $time_int, $bidir, $stats) = @_;
+    my ($self, $ma, $src, $dst, $time_int, $bidir, $protocol, $stats) = @_;
     
     my %endpoint_addrs = ();
     $endpoint_addrs{"src"} = $self->get_ip_and_host($src) if($src);
@@ -38,6 +38,12 @@ sub doCheck {
     # Set eventType
     my @eventTypes = ("http://ggf.org/ns/nmwg/tools/iperf/2.0");
     
+    #
+    my %req_parameters = ();
+    if($protocol){
+        $req_parameters{'protocol'} = $protocol;
+    }
+    
     my $endTime = time;
     my $startTime = $endTime - $time_int;
     my $result = $ma->setupDataRequest(
@@ -45,7 +51,8 @@ sub doCheck {
                 start      => $startTime,
                 end        => $endTime,
                 subject    => $subject,
-                eventTypes => \@eventTypes
+                eventTypes => \@eventTypes,
+                parameters => \%req_parameters
             }
         ) or return "Error contacting MA";
     
