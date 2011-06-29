@@ -38,12 +38,6 @@ sub doCheck {
     # Set eventType
     my @eventTypes = ("http://ggf.org/ns/nmwg/tools/iperf/2.0");
     
-    #
-    my %req_parameters = ();
-    if($protocol){
-        $req_parameters{'protocol'} = $protocol;
-    }
-    
     my $endTime = time;
     my $startTime = $endTime - $time_int;
     my $result = $ma->setupDataRequest(
@@ -51,8 +45,7 @@ sub doCheck {
                 start      => $startTime,
                 end        => $endTime,
                 subject    => $subject,
-                eventTypes => \@eventTypes,
-                parameters => \%req_parameters
+                eventTypes => \@eventTypes
             }
         ) or return "Error contacting MA";
     
@@ -72,7 +65,7 @@ sub doCheck {
     my %mdIdMap = ();
     my %mdEndpointMap = ();
     foreach my $md (@{$result->{"metadata"}}) {
-        if(!$src && !$dst && !$bidir){
+        if(!$src && !$dst && !$bidir && !$protocol){
             last;
         }
         
@@ -84,6 +77,19 @@ sub doCheck {
         
         #record test
         $self->record_endpoints($mdDoc, \%mdIdMap, \%mdEndpointMap) if($bidir);
+        
+        #check tcp or udp - do here because server is case-sensitive
+        if($protocol){
+            my $testProto = find($mdDoc->getDocumentElement, "./*[local-name()='parameters']/*[local-name()='parameter' and \@name='protocol']/text()");
+            #try value attribute if no testProto from text()...
+            $testProto = find($mdDoc->getDocumentElement, "./*[local-name()='parameters']/*[local-name()='parameter' and \@name='protocol']/\@value") if(!$testProto);
+            if(!$testProto || lc($protocol) ne lc($testProto)){
+                my $mdId = find($mdDoc->getDocumentElement, "./\@id");
+                $excludedTests{"$mdId"} = 1;
+                #already excluded so no need for src/dest checks
+                next;
+            }
+        }
         
         if(!$src && !$dst){
             #we recorded the endpoint for bidirectional test, 
