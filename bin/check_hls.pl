@@ -10,7 +10,8 @@ use LWP::Simple;
 
 
 my $np = Nagios::Plugin->new( shortname => 'PS_HLS_COUNT',
-                              usage => "Usage: %s -u|--url <HLS-service-url> -t|--type <service-type> -k|--keyword <keyword search> -g|--glsMode <glsURl or \"many\"> -h|--hintsURL<hintsURL> -i|--initialConfig <Config file for service mapping> -w|--warning <threshold> -c|--critical <threshold>" );
+                              usage => "Usage: %s -u|--url <HLS-service-url> -t|--type <service-type> -k|--keyword <keyword search> -g|--glsMode <glsURl or \"many\"> -h|--hintsURL<hintsURL> -i|--initialConfig <Config file for service mapping> -w|--warning <threshold> -c|--critical <threshold> --timeout <timeout>",
+                              timeout => 60);
 
 #get arguments
 $np->add_arg(spec => "u|url=s",
@@ -42,7 +43,7 @@ $np->add_arg(spec=> "g|glsMode=s",
              required => 0);
 $np->add_arg(spec=> "h|hintsURL=s",
              help => "URL of the gls hints file",
-             required => 0);    
+             required => 0); 
 $np->getopts;
 
 my $hls_url = $np->opts->{'u'};
@@ -53,6 +54,7 @@ my $configPath = $np->opts->{'i'};
 my $verbose = $np->opts->{'v'};
 my $glsURL = $np->opts->{'g'};
 my $hintsURL = $np->opts->{'h'};
+my $timeout = $np->opts->{'timeout'};
 my @serviceslist;
 if($type ne "all"){
 	@serviceslist = split(',',$type); #need not worry about spaces (it is command line separator)
@@ -190,7 +192,8 @@ HLSLIST: foreach $url (@hlsList){
 	
 my $client = new perfSONAR_PS::Client::LS(
         {
-           	instance => $url
+           	instance => $url,
+           	timeout => $timeout
         }
     );
         
@@ -368,7 +371,8 @@ sub contactGLS(){
 		#Create client
 		my $client = new perfSONAR_PS::Client::LS(
         	{
-            	instance => $linkurl
+            	instance => $linkurl,
+            	timeout => $timeout
         	}
     	);
     

@@ -9,7 +9,8 @@ use XML::LibXML;
 use LWP::Simple;
 
 my $np = Nagios::Plugin->new( shortname => 'check_topology',
-                              usage => "Usage: %s -v|--verbose -d|--domainName<domain-name> -u|--url <topology-service-URL> -i|--initialconfig<initial config file> -w|--warning <warning-threshold> -c|--critical <critical-threshold> -n|--namespace <namespace>" );
+                              timeout => 60,
+                              usage => "Usage: %s -v|--verbose -d|--domainName<domain-name> -u|--url <topology-service-URL> -i|--initialconfig<initial config file> -w|--warning <warning-threshold> -c|--critical <critical-threshold> -n|--namespace <namespace> -t|--timeout <timeout>" );
 
 #get arguments
 $np->add_arg(spec=> "u|url=s",
@@ -50,7 +51,7 @@ my $cThresh = $np->opts->{'c'};
 my $verbose = $np->opts->{'v'};
 my $namespace = $np->opts->{'n'};
 my $configPath = $np->opts->{'i'};
-
+my $timeout = $np->opts->{'timeout'};
 
 #read contents of service config file and store mapping
 my %namespaceMap = ();
@@ -92,8 +93,8 @@ if ($namespace =~ m/^http:\/\//){
 		}
 	}
 
-#Create client
-my $client = new perfSONAR_PS::Client::Topology($topologyURL);
+#Create $timeout
+my $client = new perfSONAR_PS::Client::Topology($topologyURL, $timeout);
     
 #Create XQuery
 my $xquery = '';

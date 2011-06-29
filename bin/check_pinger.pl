@@ -10,7 +10,8 @@ use perfSONAR_PS::Client::MA;
 use XML::LibXML;
 
 my $np = Nagios::Plugin->new( shortname => 'PS_CHECK_PING',
-                              usage => "Usage: %s -u|--url <service-url> -s|source=s <source> -d|destination <destination> -k|rttType<RTT type - minRtt,maxRtt,meanRtt> -f|function <function min,max,mean to analyze RTT> -r|--range <time-interval> -w|--warning <threshold> -c|--critical <threshold> -V|--verbose" );
+                              timeout => 60,
+                              usage => "Usage: %s -u|--url <service-url> -s|source=s <source> -d|destination <destination> -k|rttType<RTT type - minRtt,maxRtt,meanRtt> -f|function <function min,max,mean to analyze RTT> -r|--range <time-interval> -w|--warning <threshold> -c|--critical <threshold> -V|--verbose --t|timeout <timeout>" );
 
 #get arguments
 $np->add_arg(spec => "u|url=s",
@@ -49,6 +50,7 @@ my $rttType = $np->opts->{'k'};
 my $source = $np->opts->{'s'};
 my $destination = $np->opts->{'d'};
 my $verbose = $np->opts->{'v'};
+my $timeout = $np->opts->{'timeout'};
 if(!defined $rttType){
 	$rttType = "minRtt";
 }
@@ -62,7 +64,7 @@ if($verbose ne ''){
 
 
 #create client
-my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url } );
+my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, timeout => $timeout } );
 
 #create query
 my $subject = "<pinger:subject id=\"subject-48\" xmlns:pinger=\"http://ggf.org/ns/nmwg/tools/pinger/2.0\">\n";

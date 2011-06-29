@@ -14,7 +14,8 @@ use constant BW_SCALE => 10e8;
 use constant BW_LABEL => 'Gbps';
 
 my $np = Nagios::Plugin->new( shortname => 'PS_CHECK_THROUGHPUT',
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -v|--verbose -p|--protocol <protocol>" );
+                              timeout => 60,
+                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -v|--verbose -p|--protocol <protocol> -t|--timeout <timeout>" );
 
 #get arguments
 $np->add_arg(spec => "u|url=s",
@@ -45,7 +46,7 @@ $np->getopts;
 
 #create client
 my $ma_url = $np->opts->{'u'};
-my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url } );
+my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, timeout => $np->opts->{'timeout'} } );
 my $stats = Statistics::Descriptive::Sparse->new();
 my $checker = new perfSONAR_PS::ServiceChecks::ThroughputCheck;
 

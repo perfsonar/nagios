@@ -25,7 +25,8 @@ use constant HAS_METADATA => 1;
 use constant HAS_DATA => 2;
 
 my $np = Nagios::Plugin->new( shortname => 'PS_CHECK_OWDELAY',
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -l|--loss -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold>" );
+                              timeout => 60,
+                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -l|--loss -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> --t|timeout <timeout>" );
 
 #get arguments
 $np->add_arg(spec => "u|url=s",
@@ -59,7 +60,7 @@ $np->getopts;
 
 #create client
 my $ma_url = $np->opts->{'u'};
-my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url } );
+my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, timeout => $np->opts->{'timeout'} } );
 my $stats = Statistics::Descriptive::Sparse->new();
 my $EXCEPTION_CODE = UNKNOWN;
 if($np->opts->{'errwarn'}){

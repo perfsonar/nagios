@@ -10,7 +10,8 @@ use LWP::Simple;
 
 
 my $np = Nagios::Plugin->new( shortname => 'check_gls',
-                              usage => "Usage: %s -v|--verbose -h|--hintsURL <gls-hints-URL> -u|--url <serviceglsURL> -f|--hlsurlfile <hls url file> -k|--keyword <keyword search> -t|--type <type of service> -w|--warning <warning-threshold> -c|--critical <critical-threshold> -i|--initialConfig <config-file path>" );
+                              timeout => 60,
+                              usage => "Usage: %s -v|--verbose -h|--hintsURL <gls-hints-URL> -u|--url <serviceglsURL> -f|--hlsurlfile <hls url file> -k|--keyword <keyword search> -t|--type <type of service> -w|--warning <warning-threshold> -c|--critical <critical-threshold> -i|--initialConfig <config-file path> --timeout <timeout>" );
 
 #get arguments
 $np->add_arg(spec=> "h|hintsURL=s",
@@ -60,6 +61,7 @@ my $wThresh = $np->opts->{'w'};
 my $cThresh = $np->opts->{'c'};
 my $serviceType =$np->opts->{'t'};
 my $verbose = $np->opts->{'v'};
+my $timeout = $np->opts->{'timeout'};
 
 my %serviceMap =();
 #read contents of service config file and store mapping
@@ -180,7 +182,8 @@ print "\n GLS URL: ", $linkurl,"\n";
 	#Create client
 	my $client = new perfSONAR_PS::Client::LS(
         {
-            instance => $linkurl
+            instance => $linkurl,
+            timeout => $timeout
         }
     );
     

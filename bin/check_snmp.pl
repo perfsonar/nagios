@@ -10,7 +10,8 @@ use XML::LibXML;
 use LWP::Simple;
 
 my $np = Nagios::Plugin->new( shortname => 'check_snmp',
-                              usage => "Usage: %s   -u|--url <snmp-MA-URL> -i|--interface<interface-address> -t|--timeInterval<time-interval-in-minutes> -d|--direction<traffic-direction> -w|--warning <warning-threshold> -c|--critical <critical-threshold> -v|--verbose" );
+                              timeout => 60,
+                              usage => "Usage: %s   -u|--url <snmp-MA-URL> -i|--interface<interface-address> -t|--timeInterval<time-interval-in-minutes> -d|--direction<traffic-direction> -w|--warning <warning-threshold> -c|--critical <critical-threshold> -v|--verbose --timeout <timeout>" );
 
 #get arguments 
 $np->add_arg(spec=> "u|url=s",
@@ -50,9 +51,10 @@ my $wThresh = $np->opts->{'w'};
 my $cThresh = $np->opts->{'c'};
 my $verbose = $np->opts->{'v'};
 my $direction = $np->opts->{'d'};
+my $timeout = $np->opts->{'timeout'};
 
 # Create client
-my $ma = new perfSONAR_PS::Client::MA( { instance => $snmpURL } );
+my $ma = new perfSONAR_PS::Client::MA( { instance => $snmpURL, timeout => $timeout } );
 
 # Set subject
 my $subject = "<netutil:subject xmlns:netutil=\"http://ggf.org/ns/nmwg/characteristic/utilization/2.0\" id=\"s\">\n";
