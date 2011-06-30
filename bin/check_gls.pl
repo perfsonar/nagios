@@ -183,7 +183,7 @@ print "\n GLS URL: ", $linkurl,"\n";
 	my $client = new perfSONAR_PS::Client::LS(
         {
             instance => $linkurl,
-            timeout => $timeout
+            alarm_disabled => 1
         }
     );
     

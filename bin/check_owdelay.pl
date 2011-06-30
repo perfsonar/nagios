@@ -13,6 +13,7 @@ use perfSONAR_PS::Common qw( find findvalue );
 use perfSONAR_PS::Client::MA;
 use XML::LibXML;
 
+
 use constant DELAY_LABEL => 'ms';
 use constant DELAY_FIELD => '@min_delay';
 use constant DELAY_SCALE => 1000;
@@ -60,7 +61,7 @@ $np->getopts;
 
 #create client
 my $ma_url = $np->opts->{'u'};
-my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, timeout => $np->opts->{'timeout'} } );
+my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, alarm_disabled => 1 } );
 my $stats = Statistics::Descriptive::Sparse->new();
 my $EXCEPTION_CODE = UNKNOWN;
 if($np->opts->{'errwarn'}){
@@ -81,7 +82,7 @@ if($np->opts->{'l'}){
 }
 
 #call client
-&send_data_request($ma, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $metric, $np->opts->{'b'}, $stats);
+&send_data_request($ma, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $metric, $np->opts->{'b'}, $stats, $np->opts->{'timeout'});
 if($stats->count() == 0 ){
     my $errMsg = "No one-way delay data returned";
     $errMsg .= " for direction where" if($np->opts->{'s'} || $np->opts->{'d'});
@@ -128,7 +129,7 @@ $np->nagios_exit($code, $msg);
 
 #### SUBROUTINES
 sub send_data_request() {
-    my ($ma, $src, $dst, $time_int, $metric, $bidir, $stats) = @_;
+    my ($ma, $src, $dst, $time_int, $metric, $bidir, $stats, $timeout) = @_;
     my %endpoint_addrs = ();
     $endpoint_addrs{"src"} = &get_ip_and_host($src) if($src);
     $endpoint_addrs{"dst"} = &get_ip_and_host($dst) if($dst);
@@ -143,14 +144,25 @@ sub send_data_request() {
     
     my $endTime = time;
     my $startTime = $endTime - $time_int;
-    my $result = $ma->setupDataRequest(
+    
+    my $result = q{};
+    my $err_msg = q{};
+    eval {
+        local $SIG{ALRM} = sub {  $np->nagios_exit( $EXCEPTION_CODE, "Timeout occurred while trying to contact MA"); };
+        alarm $timeout;
+        $result = $ma->setupDataRequest(
             {
                 start      => $startTime,
                 end        => $endTime,
                 subject    => $subject,
                 eventTypes => \@eventTypes
             }
-        ) or $np->nagios_exit( $EXCEPTION_CODE, "Error contacting MA $ma_url" . $@ );
+        ) or ($err_msg = "Unable to contact MA. Please check that the MA is running and the URL is correct.");
+        alarm 0;
+    };
+    if($err_msg){
+        $np->nagios_exit( $EXCEPTION_CODE, $err_msg);
+    }
     
     # Create parser
     my $parser = XML::LibXML->new();

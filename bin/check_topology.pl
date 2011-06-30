@@ -93,8 +93,8 @@ if ($namespace =~ m/^http:\/\//){
 		}
 	}
 
-#Create $timeout
-my $client = new perfSONAR_PS::Client::Topology($topologyURL, $timeout);
+#Create client
+my $client = new perfSONAR_PS::Client::Topology($topologyURL, q{}, 1);
     
 #Create XQuery
 my $xquery = '';
@@ -117,9 +117,13 @@ my $code;
 
 #send query and receive response
 my $responsecode, $request, $result;
-my($responsecode, $request) = $client->buildQueryRequest($xquery);
-my($responsecode, $result) = $client->xQuery($xquery);
-
+($responsecode, $request) = $client->buildQueryRequest($xquery);
+eval{
+    local $SIG{ALRM} = sub {  $np->nagios_exit( "UNKNOWN", "Timeout occurred while trying to contact topology service"); };
+    alarm $timeout;
+    ($responsecode, $result) = $client->xQuery($xquery);
+    alarm 0;
+};
 
 #Handle response
 if($responsecode != -1){

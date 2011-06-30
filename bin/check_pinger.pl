@@ -64,7 +64,7 @@ if($verbose ne ''){
 
 
 #create client
-my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, timeout => $timeout } );
+my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, alarm_disabled => 1 } );
 
 #create query
 my $subject = "<pinger:subject id=\"subject-48\" xmlns:pinger=\"http://ggf.org/ns/nmwg/tools/pinger/2.0\">\n";
@@ -84,17 +84,23 @@ my $end = time;
 my $start = $end - $np->opts->{'r'}*60;
 
 #send query
-my $result = $ma->setupDataRequest(
-        {
-            resolution => $end-$start,
-            subject => $subject,
-            #parameters => { timeType => "unix" },
-            eventTypes => \@eventTypes,
-            start => $start,
-            end => $end,
-
-        }
-    ) or $np->nagios_die( "Error contacting MA $ma_url" );
+my $result = q{};
+eval{
+    local $SIG{ALRM} = sub {  $np->nagios_exit( "UNKNOWN", "Timeout occurred while trying to contact MA"); };
+    alarm $timeout;
+    $result = $ma->setupDataRequest(
+            {
+                resolution => $end-$start,
+                subject => $subject,
+                #parameters => { timeType => "unix" },
+                eventTypes => \@eventTypes,
+                start => $start,
+                end => $end,
+    
+            }
+        ) or $np->nagios_die( "Error contacting MA $ma_url" );
+    alarm 0;
+};
 
 #handle response
 my $parser = XML::LibXML->new();

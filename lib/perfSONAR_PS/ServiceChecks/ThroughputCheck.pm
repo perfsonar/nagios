@@ -24,9 +24,10 @@ sub new {
 }
 
 sub doCheck {
-    my ($self, $ma, $src, $dst, $time_int, $bidir, $protocol, $stats) = @_;
+    my ($self, $ma, $src, $dst, $time_int, $bidir, $protocol, $stats, $timeout) = @_;
     
     my %endpoint_addrs = ();
+    $timeout = 60 if(!$timeout);
     $endpoint_addrs{"src"} = $self->get_ip_and_host($src) if($src);
     $endpoint_addrs{"dst"} = $self->get_ip_and_host($dst) if($dst);
     
@@ -40,14 +41,30 @@ sub doCheck {
     
     my $endTime = time;
     my $startTime = $endTime - $time_int;
-    my $result = $ma->setupDataRequest(
-            {
-                start      => $startTime,
-                end        => $endTime,
-                subject    => $subject,
-                eventTypes => \@eventTypes
-            }
-        ) or return "Error contacting MA";
+    
+    my $result = q{};
+    my $err_msg = q{};
+    my $alarm_msg = q{};
+    eval {
+        #store error in $alarm_msg because something overwriting $@
+        local $SIG{ALRM} = sub { $alarm_msg = "Timeout occurred while trying to contact MA"; die "alarm"; };
+        alarm $timeout;
+        $result = $ma->setupDataRequest(
+                    {
+                        start      => $startTime,
+                        end        => $endTime,
+                        subject    => $subject,
+                        eventTypes => \@eventTypes
+                    }
+              ) or ($err_msg = "Unable to contact MA. Please check that the MA is running and the URL is correct.");
+        alarm 0;
+    };
+    if($alarm_msg){
+        return $alarm_msg;
+    }
+    if($err_msg){
+        return $err_msg;
+    }
     
     # Create parser
     my $parser = XML::LibXML->new();

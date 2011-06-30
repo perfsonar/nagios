@@ -54,7 +54,7 @@ my $direction = $np->opts->{'d'};
 my $timeout = $np->opts->{'timeout'};
 
 # Create client
-my $ma = new perfSONAR_PS::Client::MA( { instance => $snmpURL, timeout => $timeout } );
+my $ma = new perfSONAR_PS::Client::MA( { instance => $snmpURL, alarm_disabled => 1 } );
 
 # Set subject
 my $subject = "<netutil:subject xmlns:netutil=\"http://ggf.org/ns/nmwg/characteristic/utilization/2.0\" id=\"s\">\n";
@@ -72,19 +72,24 @@ my $range = $interval*60;
 my $end = time;
 my $start = $end - $range; #1min = 60s
 my $cFunction = "AVERAGE";
-# Send request        
-my $result = $ma->setupDataRequest(
-        {
-            subject    => $subject,
-            eventTypes => \@eventTypes,
-            start => $start,
-            end  => $end,
-            resolution => $range,
-            consolidationFunction => $cFunction
-            
-            
-        }
-    );
+# Send request    
+my $result = q{};
+eval{
+    local $SIG{ALRM} = sub {  $np->nagios_exit( "UNKNOWN", "Timeout occurred while trying to contact MA"); };
+    alarm $timeout;
+    $result = $ma->setupDataRequest(
+            {
+                subject    => $subject,
+                eventTypes => \@eventTypes,
+                start => $start,
+                end  => $end,
+                resolution => $range,
+                consolidationFunction => $cFunction
+            }
+        );
+    alarm 0;
+};
+
 #Print request parameters
 if($verbose ne ''){
 	print "Request parameters: \n";
