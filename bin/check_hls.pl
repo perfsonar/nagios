@@ -193,7 +193,7 @@ HLSLIST: foreach $url (@hlsList){
 my $client = new perfSONAR_PS::Client::LS(
         {
            	instance => $url,
-           	timeout => $timeout
+           	alarm_disabled => 1
         }
     );
         
@@ -241,12 +241,18 @@ my $client = new perfSONAR_PS::Client::LS(
 	}
 
 # Send query to Lookup Service
-my $result = $client->queryRequestLS(
-       {
-           query => $xquery,
-           format => 1 #want response to be formated as XML
-       }
-     ) ;
+my $result = q{};
+eval{
+    local $SIG{ALRM} = sub {  $np->nagios_exit( UNKNOWN, "Timeout occurred while trying to contact $url"); };
+    alarm $timeout;
+    $result = $client->queryRequestLS(
+           {
+               query => $xquery,
+               format => 1 #want response to be formated as XML
+           }
+         ) ;
+    alarm 0;
+};
 
 #or $np->nagios_die("Error contacting look up service")
 #print $result->{response};
@@ -372,7 +378,7 @@ sub contactGLS(){
 		my $client = new perfSONAR_PS::Client::LS(
         	{
             	instance => $linkurl,
-            	timeout => $timeout
+            	alarm_disabled => 1
         	}
     	);
     
@@ -420,13 +426,18 @@ sub contactGLS(){
 			print "\ncontactGLS: GLSmode XQuery: ", $xquery,"\n";
 	 	}
 	 
-	 my $result = $client->queryRequestLS(
-         {
-            query => $xquery,
-            format => 1 #want response to be formated as XML
-        }
-      ) ;
-      
+	 my $result = q{};
+	 eval{
+	    local $SIG{ALRM} = sub {  $np->nagios_exit( UNKNOWN, "Timeout occurred while trying to contact gLS $linkurl"); };
+        alarm $timeout;
+        $result = $client->queryRequestLS(
+             {
+                query => $xquery,
+                format => 1 #want response to be formated as XML
+            }
+          ) ;
+        alarm 0;
+      };
       #or $np->nagios_die( "Error contacting lookup service" )
       
       #Handle response

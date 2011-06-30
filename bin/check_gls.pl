@@ -261,14 +261,18 @@ print "\n GLS URL: ", $linkurl,"\n";
 		print $xquery,"\n";
 	 }
 	
-	
-	my $result = $client->queryRequestLS(
-         {
-            query => $xquery,
-            format => 1 #want response to be formated as XML
-        }
-      ) or $np->nagios_die( "Error contacting lookup service" );
-      
+	my $result = q{};
+	eval{
+	    local $SIG{ALRM} = sub {  $np->nagios_exit( UNKNOWN, "Timeout occurred while trying to contact gLS"); };
+        alarm $timeout;
+        $result = $client->queryRequestLS(
+             {
+                query => $xquery,
+                format => 1 #want response to be formated as XML
+            }
+          ) or $np->nagios_die( "Unable to contact gLS. Please check that the gLS is running and the URL is correct." );
+        alarm 0;
+    };
        
 	#Handle response
 	if($result && $result->{response} && $result->{response} !~ /\</){
