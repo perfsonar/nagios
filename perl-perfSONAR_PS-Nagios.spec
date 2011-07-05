@@ -4,7 +4,7 @@
 %define relnum 1
 %define disttag pSPS
 
-Name:           perl-perfSONAR_PS-Nagios-Plugins
+Name:           perl-perfSONAR_PS-Nagios
 Version:        3.2
 Release:        %{relnum}.%{disttag}
 Summary:        perfSONAR_PS Nagios Plugins
