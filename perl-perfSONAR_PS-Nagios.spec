@@ -1,6 +1,5 @@
 %define _unpackaged_files_terminate_build      0
 %define install_base /opt/perfsonar_ps/nagios
-%define _topdir  /home/sowmya/rpm
 
 %define relnum 1
 %define disttag pSPS
@@ -11,9 +10,10 @@ Release:        %{relnum}.%{disttag}
 Summary:        perfSONAR_PS Nagios Plugins
 License:        distributable, see LICENSE
 Group:          Development/Libraries
-Source0:        perfSONAR_PS-Nagios.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}
+Source0:        perfSONAR_PS-Nagios-%{version}.%{relnum}.tar.gz
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
+
 Requires:               perl(Carp)
 Requires:               perl(Data::UUID)
 Requires:               perl(Data::Validate::IP)
