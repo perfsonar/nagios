@@ -7,10 +7,12 @@ bin/check_ls_probe.pl
 bin/check_owdelay.pl
 bin/check_perfSONAR.pl
 bin/check_pinger.pl
+bin/check_ps_version.pl
 bin/check_snmp.pl
 bin/check_throughput.pl
 bin/check_throughput_probe.pl
 bin/check_topology.pl
+bin/check_traceroute.pl
 dependencies
 doc/README.txt
 etc/services.config
