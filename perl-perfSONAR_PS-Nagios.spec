@@ -44,7 +44,7 @@ The perfSONAR_PS-Nagios Plugins can be used with Nagios to monitor the various p
 /usr/sbin/useradd -g perfsonar -r -s /sbin/nologin -c "perfSONAR User" -d /tmp perfsonar 2> /dev/null || :
 
 %prep
-%setup -q -n perfSONAR_PS-Nagios
+%setup -q -n perfSONAR_PS-Nagios-%{version}.%{relnum}
 
 %build
 
