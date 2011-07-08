@@ -1,10 +1,20 @@
-PACKAGE=perfSONAR_PS-NagiosPlugins
+PACKAGE=perfSONAR_PS-Nagios
 ROOTPATH=/opt/perfsonar_ps/nagios
-VERSION=3.1
-RELEASE=11
+VERSION=3.2
+RELEASE=1
 
 default:
 	@echo No need to build the package. Just run \"make install\"
+
+dist:
+	mkdir /tmp/$(PACKAGE)-$(VERSION).$(RELEASE)
+	tar ch -T MANIFEST | tar x -C /tmp/$(PACKAGE)-$(VERSION).$(RELEASE)
+	cd /tmp/$(PACKAGE)-$(VERSION).$(RELEASE) && ln -s doc/LICENSE LICENSE
+	cd /tmp/$(PACKAGE)-$(VERSION).$(RELEASE) && ln -s doc/INSTALL INSTALL
+	cd /tmp/$(PACKAGE)-$(VERSION).$(RELEASE) && ln -s doc/README README
+	tar czf $(PACKAGE)-$(VERSION).$(RELEASE).tar.gz -C /tmp $(PACKAGE)-$(VERSION).$(RELEASE)
+	rm -rf /tmp/$(PACKAGE)-$(VERSION).$(RELEASE)
+
 
 rpminstall:
 	mkdir -p ${ROOTPATH}
