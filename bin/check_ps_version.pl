@@ -15,7 +15,7 @@ NAGIOS check of the version of a perfSONAR toolkit host.
 
 =head1 SYNOPSIS
 
-NAGIOS plugin to check the version of a toolkit hosts. Looks in the hLS for the 
+NAGIOS plugin to check the version of a toolkit host. Looks in the hLS for the 
 pS-NPToolkit-${version} keyword. Checks the ping service for now since all hosts have that.
 Display:
 
@@ -40,10 +40,10 @@ my $np = Nagios::Plugin->new( shortname => 'PS_VERSION',
 
 #get arguments
 $np->add_arg(spec => "u|url=s",
-             help => "URL of the lookup service(HLS) to contact. If more than one use -f option",
+             help => "URL of the lookup service (hLS) to contact.",
              required => 0 );
 $np->add_arg(spec => "v|version=s",
-             help => "Version reuired ofr check to pass",
+             help => "Version required for check to pass",
              required => 1 );
 $np->add_arg(spec => "c|criticial",
              help => "Return CRITICAL if version does not match. Default is WARNING.",
@@ -60,7 +60,7 @@ $np->getopts;
 my $url = $np->opts->{'u'};
 my $timeout = $np->opts->{'timeout'};
 my $req_version = $np->opts->{'v'};
-my $verbose = $np->opts->{'debug'};
+my $verbose = $np->opts->{'debug'} ? $np->opts->{'debug'} : '';
 
 my $client = new perfSONAR_PS::Client::LS(
         {
@@ -133,7 +133,7 @@ foreach my $keyword(@keywords){
     
     if($keyword->textContent =~ /project:pS-NPToolkit-(.+)/){
         $version = $1;
-        break if($version ne q{});
+        last if($version ne q{});
     }
 }
 

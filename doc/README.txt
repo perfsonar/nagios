@@ -4,15 +4,17 @@ INTRODUCTION
 The set of plugins are used to check the health of the various perfSONAR services
 that have been deployed on various hosts and have been collecting data for quite sometime.
 Currently there are 9 plugins available. They are:
-	1. check_gls.pl
-	2. check_hls.pl
-        3. check_ls.pl
-	4. check_pinger.pl
-	5. check_topology.pl
-	6. check_snmp.pl
-	7. check_throughput.pl
-	8. check_owdelay.pl
-	9. check_perfSONAR.pl
+	01. check_gls.pl
+	02. check_hls.pl
+	03. check_ls.pl
+	04. check_pinger.pl
+	05. check_topology.pl
+	06. check_snmp.pl
+	07. check_throughput.pl
+	08. check_owdelay.pl
+	09. check_traceroute.pl
+	10. check_perfSONAR.pl
+	11. check_ps_version.pl
 
 INSTALLATION REQUIREMENTS
 The plugins require Perl(>5.0) and Nagios. Additionally, please ensure that
@@ -57,6 +59,8 @@ Input options:
 -v|--verbose -     (Optional) Runs in verbose mode. Useful for debugging or running as a perl module
 
 -i|--initialConfig - (Optional) Specify a config file that contains the mapping between the keyword used for a service and the full namespace of the service. If this is not specified, the full URLs have to be used instead of the short names.
+
+--timeout - (Optional) Seconds before plugin times out (default: 60)
 
 
 Output:
@@ -124,6 +128,8 @@ Input options:
 -w|--warning -     (Required) If the number of services returned falls below or above the threshold, the plugin returns WARNING state. Please refer to Nagios documentation for details about setting this value.
 
 -c|--critical -    (Required) If the number of services returned falls below or above the threshold, the plugin returns CRITICAL state. Please refer to Nagios documentation for details about setting this value.
+
+--timeout - (Optional) Seconds before plugin times out (default: 60)
 
 Output:
 Nagios state: OK, WARNING, CRITICAL or UNKNOWN along with the number of services found.
@@ -198,6 +204,8 @@ Input options:
 
 -v|--verbose -     (Optional) Runs in verbose mode. Useful for debugging or running as a perl module
 
+-t|--timeout - (Optional) Seconds before plugin times out (default: 60)
+
 Output:
 Nagios state: OK, WARNING, CRITICAL or UNKNOWN along with the RTT value.
 
@@ -229,6 +237,7 @@ Input Options:
 
 -i|--initialConfig - (Optional) Specify a config file that contains the mapping between the keyword used for a service and the full namespace of the service. If this is not specified, the full URLs have to be used instead of the short names.
 
+-t|--timeout - (Optional) Seconds before plugin times out (default: 60)
 
 Output:
 Nagios state: OK, WARNING, CRITICAL or UNKNOWN along with the number of nodes in the topology.
@@ -258,6 +267,8 @@ Input options:
 -c|--critical -  (Required) If the average utilization falls below or above the threshold, the plugin returns CRITICAL state. Please refer to Nagios documentation for details about setting this value.
 
 -v|--verbose -   (Optional) Runs in verbose mode. Useful for debugging or running as a perl module
+
+--timeout - (Optional) Seconds before plugin times out (default: 60)
 
 Output:
 Nagios state: OK, WARNING, CRITICAL or UNKNOWN along with the average utilization and traffic direction in the topology.
@@ -293,6 +304,7 @@ Input options:
 
 -c|--critical - (Required) If the throughput goes below or above this value, CRITICAL status is shown in Nagios. Please refer to Nagios documentation for details about setting this value.
 
+-t|--timeout - (Optional) Seconds before plugin times out (default: 60)
 
 Output options:
 Nagios state: OK, WARNING, CRITICAL or UNKNOWN along with avg throughout
@@ -356,6 +368,7 @@ Input options:
 
 -c|--critical - (Required) threshold of delay in milliseconds that leads to CRITICAL status. In loss mode this is average packets lost and has to be an integer
 
+-t|--timeout - (Optional) Seconds before plugin times out (default: 60)
 
 Output options:
 Nagios state: OK, WARNING, CRITICAL or UNKNOWN along with loss or delay
@@ -433,8 +446,55 @@ Examples:
           check_owdelay.pl -u http://bnl-owamp.es.net:8085/perfSONAR_PS/services/pSB -r 3600 -w 0 -c :1 -l -b 
 
 
+9. CHECK_TRACEROUTE.PL
 
-9. CHECK_PERFSONAR.PL <URL> <FILE>
+This plugin queries a traceroute MA and alerts on the number of unique traceroute results seen over the 
+specified time range. This can be used to determine if a path between two endpoints is changing. If
+no source and destination is provided then it will return the highest number of unique paths it counts between
+two endpoints. As an example, if an MA contains a traceoute between point A and B that has seen the same 
+results everytime (so 1 unique result) and another between point A and C that has seen 3 unique results, 
+then the plug-in will alert based on the value 3.
+
+Input options:
+-u|--url - (Required) URL of the MA service to contact
+
+-s|--source - (Optional) Source of the test to check. If no destination is specified then the plug-in will look at all results where the provided value is the source.
+
+-d|--destination - (Optional) Destination of the test to check
+
+-r|--range - (Required) Time range (in seconds) in the past to look at data. i.e. 60 means look at last 60 seconds of data.
+
+-w|--warning -(Required) threshold of path count that leads to WARNING status
+
+-c|--critical -(Required) threshold of path count that leads to CRITICAL status
+
+-t|--timeout - (Optional) Seconds before plugin times out (default: 60)
+
+Output options:
+Nagios state: OK, WARNING, CRITICAL or UNKNOWN along with stats about the number of paths observed. 
+When multiple enpdoint pairs are analyzed the stats will be report the MIN, MAX, AVERAGE, and STANDARD
+DEVIATION of the number of paths observed. It also reports stats on the times each test observed has run
+in teh given time range.
+
+Examples:
+# Warn if there is two paths observed and critical if > 2 between fnal-pt1.es.net and anl-pt1.es.net in the last hour
+
+          check_traceroute.pl -u http://fnal-pt1.es.net:8085/perfSONAR_PS/services/tracerouteMA -r 3600 -s fnal-pt1.es.net -d anl-pt1.es.net -w 1 -c :2
+
+# Warn if there is two paths observed and critical if > 2 on any test with source fnal-pt1.es.net
+ 
+          check_traceroute.pl -u http://fnal-pt1.es.net:8085/perfSONAR_PS/services/tracerouteMA -r 3600 -s fnal-pt1.es.net -w 1 -c :2
+
+# Warn if there is two paths observed and critical if > 2 on any test with destination anl-pt1.es.net
+ 
+          check_traceroute.pl -u http://fnal-pt1.es.net:8085/perfSONAR_PS/services/tracerouteMA -r 3600 -d anl-pt1.es.net -w 1 -c :2
+
+# Warn if there is two paths observed and critical if > 2 on any test in the MA
+ 
+          check_traceroute.pl -u http://fnal-pt1.es.net:8085/perfSONAR_PS/services/tracerouteMA -r 3600 -w 1 -c :2
+          
+          
+10. CHECK_PERFSONAR.PL <URL> <FILE>
 
 Sends a request to the perfSONAR service specified by the given URL and throws critical if it does not get a response. It can send an echo request, a SetupDataRequest, or a custom request (by specifying an XML file).
 
@@ -465,7 +525,37 @@ Sends a request to the perfSONAR service specified by the given URL and throws c
 Output options:
 Nagios state: OK or critical if response not returned
 
+11. CHECK_PS_VERSION.PL
 
+NAGIOS plugin to check the version of a toolkit host. Looks in the hLS for the 
+pS-NPToolkit-${version} keyword. Checks the ping service for now since all hosts have that.
+
+Input options:
+-u|--url - (Required) URL of the lookup service (hLS) to contact.
+
+-v, --version - (Required) Version required for check to pass
+
+-c|--critical - (Optional) This is just a flag and does not take any options. Return CRITICAL if version does not match. Default is WARNING.
+
+-t|--timeout - (Optional) Seconds before plugin times out (default: 60)
+
+ --debug - (Optional) allow verbose mode for debugging
+   
+Output options:
+Nagios state: OK, WARNING, CRITICAL or UNKNOWN. The output also contains the version it does find for every
+   state except UNKNOWN. 
+
+Examples:
+# Warn if the toolkit hosting the specified LS is not running version 3.2.1
+
+          check_ps_version.pl -u http://ps-bw.es.net:9995/perfSONAR_PS/services/hLS -v 3.2.1
+
+# Throw a CRITICAL alarm if the toolkit hosting the specified LS is not running version 3.2.1
+
+          check_ps_version.pl -u http://ps-bw.es.net:9995/perfSONAR_PS/services/hLS -v 3.2.1 -c
+
+         
+         
 CONFIG FILES
 InitialConfig File:
 Some plugins require a config file that provides the mapping between the abbreviation used and the full namespace of the service. The config file typically looks as follows:
@@ -482,3 +572,28 @@ A file containing list of HLS or GLS URLs will look like this:
 http://ps1.es.net:9990/perfSONAR_PS/services/gLS
 http://ps3.es.net:9990/perfSONAR_PS/services/gLS
 http://ps5.es.net:9990/perfSONAR_PS/services/gLS
+
+
+FREQUESTLY ASKED QUESTIONS (FAQs)
+
+1. Where can I learn more about nagios configuration file formats?
+
+Please see the site: http://nagios.sourceforge.net/docs/nagioscore/3/en/config.html. Your configuration
+files will depend on your format and needs of your network. Describing all teh ways Nagios allow you to 
+configure the plug-ins is beyond the scope of this document. 
+
+--------
+
+2. Where can I learn more about the format of the -w and -c options?
+
+See http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT for a full syntax.
+
+--------
+
+3. How do I configure the plug-ins to use a HTTP proxy?
+
+Many of the nagios plug-ins commucicate with the perfSONAR service being checked via HTTP. If
+you are behind an HTTP PROXY you will need to configure the plug-ins to use it. You can do 
+this by setting the HTTP_PROXY environment variable on your system.
+
+--------
