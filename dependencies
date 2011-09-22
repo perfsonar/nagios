@@ -11,7 +11,9 @@ LWP::UserAgent
 Log::Log4perl
 Nagios::Plugin
 Params::Validate
+Socket
 Statistics::Descriptive
+Sys::Hostname
 Time::HiRes
 XML::LibXML
 base
