@@ -69,7 +69,7 @@ $np->add_perfdata(
     );
 $np->add_perfdata(
         label => 'PathCountStdDev',
-        value => $pathStats->standard_deviation(),
+        value => ($pathStats->standard_deviation() ? $pathStats->standard_deviation() : 0),
     );
 $np->add_perfdata(
         label => 'TestCount',
@@ -89,7 +89,7 @@ $np->add_perfdata(
     );
 $np->add_perfdata(
         label => 'TestNumTimesRunStdDev',
-        value => $testStats->standard_deviation(),
+        value => ($testStats->standard_deviation() ? $testStats->standard_deviation() : 0),
     );
     
 my $code = $np->check_threshold(
