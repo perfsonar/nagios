@@ -15,6 +15,7 @@ bin/check_topology.pl
 bin/check_traceroute.pl
 dependencies
 doc/README.txt
+doc/LICENSE
 etc/services.config
 lib/perfSONAR_PS/Client/Echo.pm
 lib/perfSONAR_PS/Client/LS.pm
