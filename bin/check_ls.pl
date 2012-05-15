@@ -99,7 +99,7 @@ my $contact = get_ip_and_host( $host );
 my $query = "declare namespace nmwg=\"http://ggf.org/ns/nmwg/base/2.0/\";\n";
 $query = "declare namespace perfsonar=\"http://ggf.org/ns/nmwg/tools/org/perfsonar/1.0/\";\n";
 $query = "declare namespace psservice=\"http://ggf.org/ns/nmwg/tools/org/perfsonar/service/1.0/\";\n";
-$query .= "/nmwg:store[\@type=\"LSStore-summary\"]//psservice:accessPoint[text()=\"http://" . $contact->{"hostname"} . ":" . $port . $endpoint . "\"]\n";
+$query .= "/nmwg:store[\@type=\"LSStore-summary\"]//psservice:accessPoint\n";
 
 my $result = $ls->queryRequestLS( { query => $query, format => 1, eventType => "http://ogf.org/ns/nmwg/tools/org/perfsonar/service/lookup/discovery/xquery/2.0" } );
 if ( not defined $result ) {
@@ -107,28 +107,10 @@ if ( not defined $result ) {
     $msg  = "Service is not responding.";
 }
 elsif ( $result->{eventType} =~ m/^error/mx ) {
-
-    # try the other possibility - the hLS registered w/ IP or HostName.
-    $query = "declare namespace nmwg=\"http://ggf.org/ns/nmwg/base/2.0/\";\n";
-    $query = "declare namespace perfsonar=\"http://ggf.org/ns/nmwg/tools/org/perfsonar/1.0/\";\n";
-    $query = "declare namespace psservice=\"http://ggf.org/ns/nmwg/tools/org/perfsonar/service/1.0/\";\n";
-    $query .= "/nmwg:store[\@type=\"LSStore-summary\"]//psservice:accessPoint[text()=\"http://" . $contact->{"ip"} . ":" . $port . $endpoint . "\"]\n";
-
-    my $result2 = $ls->queryRequestLS( { query => $query, format => 1, eventType => "http://ogf.org/ns/nmwg/tools/org/perfsonar/service/lookup/discovery/xquery/2.0" } );
-    if ( not defined $result2 ) {
-        $code = $NAGIOS_API_ECODES{CRITICAL};
-        $msg  = "Service is not responding.";
-    }
-    elsif ( $result2->{eventType} =~ m/^error/mx ) {
-
-        # warning, got an answer, not what we wanted
-        $code = $NAGIOS_API_ECODES{WARNING};
-        $msg  = "Service returned unexpected response.";
-    }
-    else {
-        $code = $NAGIOS_API_ECODES{OK};
-        $msg  = "Service functioning normally.";
-    }
+    # warning, got an answer, not what we wanted
+    $code = $NAGIOS_API_ECODES{WARNING};
+     $msg  = "Service returned unexpected response.";
+ 
 }
 else {
     $code = $NAGIOS_API_ECODES{OK};

@@ -270,7 +270,7 @@ sub endpoint_matches {
     my( $self, $ep1, $ep2 ) = @_;
     
     foreach my $ep2_type(keys %{ $ep2 }){
-        if( $ep1."" eq $ep2->{$ep2_type} ){
+        if( lc($ep1."") eq lc($ep2->{$ep2_type}) ){
             return 1;
         }
     }
