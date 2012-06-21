@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-use FindBin qw($RealBin);
-use lib "$RealBin/../lib/";
+use FindBin qw($Bin);
+use lib "$Bin/../lib/";
 use Nagios::Plugin;
 use Statistics::Descriptive;
 use perfSONAR_PS::Client::MA;

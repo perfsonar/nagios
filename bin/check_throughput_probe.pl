@@ -5,8 +5,8 @@ use warnings;
 
 our $VERSION = "3.2.1";
 
-use FindBin qw($RealBin);
-use lib "$RealBin/../lib/";
+use FindBin qw($Bin);
+use lib "$Bin/../lib/";
 use English qw( -no_match_vars );
 use Getopt::Long;
 use Sys::Hostname;

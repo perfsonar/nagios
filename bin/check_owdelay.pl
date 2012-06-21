@@ -3,8 +3,8 @@
 use strict;
 use warnings;
 
-use FindBin qw($RealBin);
-use lib "$RealBin/../lib/";
+use FindBin qw($Bin);
+use lib "$Bin/../lib/";
 use Nagios::Plugin;
 use Data::Validate::IP qw(is_ipv4 is_ipv6);
 use Socket;

@@ -34,8 +34,8 @@ my $_intDegCount = 0;
 #    $libdir = '/home/jason/perfSONAR-PS/lib/';
 #}
 
-use FindBin qw($RealBin);
-use lib "$RealBin/../lib/";
+use FindBin qw($Bin);
+use lib "$Bin/../lib/";
 #use lib "$libdir";
 
 use perfSONAR_PS::Transport;

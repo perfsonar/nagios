@@ -5,7 +5,7 @@
 %define disttag pSPS
 
 Name:           perl-perfSONAR_PS-Nagios
-Version:        3.2.1
+Version:        3.2.2
 Release:        %{relnum}.%{disttag}
 Summary:        perfSONAR_PS Nagios Plugins
 License:        distributable, see LICENSE

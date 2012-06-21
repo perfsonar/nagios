@@ -25,8 +25,8 @@ Display:
            
 =cut
 
-use FindBin qw($RealBin);
-use lib "$RealBin/../lib/";
+use FindBin qw($Bin);
+use lib "$Bin/../lib/";
 use Nagios::Plugin;
 use perfSONAR_PS::Common qw( find findvalue );
 use perfSONAR_PS::Client::LS;
