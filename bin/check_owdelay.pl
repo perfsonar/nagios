@@ -18,7 +18,9 @@ use constant DELAY_LABEL => 'ms';
 use constant DELAY_FIELD => '@min_delay';
 use constant DELAY_SCALE => 1000;
 use constant DELAY_STRING => 'Minimum delay';
-use constant LOSS_LABEL => '';
+use constant LOSS_LABEL => 'pps';
+use constant LOSS_LABEL_LONG => ' packets per session';
+use constant LOSS_PERCENT_LABEL => '%';
 use constant LOSS_FIELD => '@loss';
 use constant LOSS_SCALE => 1;
 use constant LOSS_STRING => 'Loss';
@@ -27,7 +29,7 @@ use constant HAS_DATA => 2;
 
 my $np = Nagios::Plugin->new( shortname => 'PS_CHECK_OWDELAY',
                               timeout => 60,
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -l|--loss -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> --t|timeout <timeout>" );
+                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -l|--loss -p|--percentage -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> --t|timeout <timeout>" );
 
 #get arguments
 $np->add_arg(spec => "u|url=s",
@@ -45,6 +47,9 @@ $np->add_arg(spec => "b|bidirectional",
 $np->add_arg(spec => "l|loss",
              help => "Look at packet loss instead of delay.",
              required => 0 );
+$np->add_arg(spec => "p|percentage",
+             help => "Express loss as percentage in output and input parameters are interpreted as percentage.",
+             required => 0 );
 $np->add_arg(spec => "errwarn",
              help => "Communication and parsing errors throw WARNING",
              required => 0 );
@@ -52,10 +57,10 @@ $np->add_arg(spec => "r|range=i",
              help => "Time range (in seconds) in the past to look at data. i.e. 60 means look at last 60 seconds of data.",
              required => 1 );
 $np->add_arg(spec => "w|warning=s",
-             help => "threshold of delay (" . DELAY_LABEL . ") that leads to WARNING status. In loss mode this is average packets lost as an integer.",
+             help => "threshold of delay (" . DELAY_LABEL . ") that leads to WARNING status. In loss mode this is average packets lost as an number. If -p is specified in addition to -l, then number must be 0-100 (inclusive) and will be interpreted as a percentage.",
              required => 1 );
 $np->add_arg(spec => "c|critical=s",
-             help => "threshold of delay (" . DELAY_LABEL . ") that leads to CRITICAL status. In loss mode this is average packets lost as an integer.",
+             help => "threshold of delay (" . DELAY_LABEL . ") that leads to CRITICAL status. In loss mode this is average packets lost as an integer. If -p is specified in addition to -l, then number must be 0-100 (inclusive) and will be interpreted as a percentage.",
              required => 1 );
 $np->getopts;                              
 
@@ -72,17 +77,19 @@ if($np->opts->{'errwarn'}){
 #set metric
 my $metric = DELAY_FIELD;
 my $metric_label = DELAY_LABEL;
+my $metric_label_long = DELAY_LABEL;
 my $metric_scale = DELAY_SCALE;
 my $metric_string = DELAY_STRING;
 if($np->opts->{'l'}){
     $metric = LOSS_FIELD;
-    $metric_label = LOSS_LABEL;
+    $metric_label = ($np->opts->{'p'} ? LOSS_PERCENT_LABEL : LOSS_LABEL);
+    $metric_label_long = ($np->opts->{'p'} ? LOSS_PERCENT_LABEL : LOSS_LABEL_LONG);
     $metric_scale = LOSS_SCALE;
     $metric_string = LOSS_STRING;
 }
 
 #call client
-&send_data_request($ma, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $metric, $np->opts->{'b'}, $stats, $np->opts->{'timeout'});
+&send_data_request($ma, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $metric, $np->opts->{'b'}, $stats, $np->opts->{'timeout'}, $np->opts->{'p'});
 if($stats->count() == 0 ){
     my $errMsg = "No one-way delay data returned";
     $errMsg .= " for direction where" if($np->opts->{'s'} || $np->opts->{'d'});
@@ -121,7 +128,7 @@ my $code = $np->check_threshold(
 
 my $msg = "";   
 if($code eq OK || $code eq WARNING || $code eq CRITICAL){
-    $msg = "$metric_string is " . ($stats->mean() * $metric_scale) . $metric_label;
+    $msg = "$metric_string is " . sprintf("%.2f", ($stats->mean() * $metric_scale)) . $metric_label_long;
 }else{
     $msg = "Error analyzing results";
 }
@@ -129,7 +136,7 @@ $np->nagios_exit($code, $msg);
 
 #### SUBROUTINES
 sub send_data_request() {
-    my ($ma, $src, $dst, $time_int, $metric, $bidir, $stats, $timeout) = @_;
+    my ($ma, $src, $dst, $time_int, $metric, $bidir, $stats, $timeout, $is_percentage) = @_;
     my %endpoint_addrs = ();
     $endpoint_addrs{"src"} = &get_ip_and_host($src) if($src);
     $endpoint_addrs{"dst"} = &get_ip_and_host($dst) if($dst);
@@ -234,13 +241,26 @@ sub send_data_request() {
             $np->nagios_exit( $EXCEPTION_CODE, "Could not find definition for test " . $mdIdMap{$mdIdRef} . ", but found reverse test." );
         }
         
-        my $owamp_data = find($doc->getDocumentElement, "./*[local-name()='datum']/$metric", 0);
+        #my $owamp_data = find($doc->getDocumentElement, "./*[local-name()='datum']/$metric", 0);
+        my $owamp_data = find($doc->getDocumentElement, "./*[local-name()='datum']", 0);
         if( !defined $owamp_data){
             $np->nagios_exit( $EXCEPTION_CODE, "Error extracting metric from MA response" );
         }
         
         foreach my $owamp_datum (@{$owamp_data}) {
-            $stats->add_data( $owamp_datum->getValue() );
+            my $tmpAttr = find($owamp_datum, "$metric");
+            next unless($tmpAttr && @{$tmpAttr} > 0);
+            my $tmpValue = $tmpAttr->[0]->getValue();
+            next unless(defined $tmpValue);
+            if($is_percentage && $metric eq LOSS_FIELD){
+                my $tmpSentAttr = find($owamp_datum, '@sent');
+                next unless($tmpSentAttr && @{$tmpSentAttr} > 0);
+                my $tmpSent = $tmpSentAttr->[0]->getValue();
+                next unless($tmpSent);
+                $tmpValue /= $tmpSent;
+                $tmpValue *= 100;
+            }
+            $stats->add_data( $tmpValue );
             $mdEndpointMap{$mdIdMap{$mdIdRef}} = HAS_DATA if($bidir && (!$src || !$dst));
         }
     }
