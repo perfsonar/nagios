@@ -26,10 +26,11 @@ use constant LOSS_SCALE => 1;
 use constant LOSS_STRING => 'Loss';
 use constant HAS_METADATA => 1;
 use constant HAS_DATA => 2;
+use constant DEFAULT_DIGITS => 3;
 
 my $np = Nagios::Plugin->new( shortname => 'PS_CHECK_OWDELAY',
                               timeout => 60,
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -l|--loss -p|--percentage -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> --t|timeout <timeout>" );
+                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -l|--loss -p|--percentage --digits <significant-digits> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> --t|timeout <timeout>" );
 
 #get arguments
 $np->add_arg(spec => "u|url=s",
@@ -56,6 +57,9 @@ $np->add_arg(spec => "errwarn",
 $np->add_arg(spec => "r|range=i",
              help => "Time range (in seconds) in the past to look at data. i.e. 60 means look at last 60 seconds of data.",
              required => 1 );
+$np->add_arg(spec => "digits=i",
+             help => "Sets the number of significant digits reported after the decimal in results. Must be greater than 0. Defaults to 3.",
+             required => 0 );
 $np->add_arg(spec => "w|warning=s",
              help => "threshold of delay (" . DELAY_LABEL . ") that leads to WARNING status. In loss mode this is average packets lost as an number. If -p is specified in addition to -l, then number must be 0-100 (inclusive) and will be interpreted as a percentage.",
              required => 1 );
@@ -99,6 +103,11 @@ if($stats->count() == 0 ){
 }
 
 # format nagios output
+my $digits = DEFAULT_DIGITS;
+if(defined $np->opts->{'digits'} && $np->opts->{'digits'} ne '' && $np->opts->{'digits'} >= 0){
+    $digits = $np->opts->{'digits'};
+}
+
 $np->add_perfdata(
         label => 'Count',
         value => $stats->count(),
@@ -128,7 +137,7 @@ my $code = $np->check_threshold(
 
 my $msg = "";   
 if($code eq OK || $code eq WARNING || $code eq CRITICAL){
-    $msg = "$metric_string is " . sprintf("%.2f", ($stats->mean() * $metric_scale)) . $metric_label_long;
+    $msg = "$metric_string is " . sprintf("%.${digits}f", ($stats->mean() * $metric_scale)) . $metric_label_long;
 }else{
     $msg = "Error analyzing results";
 }
