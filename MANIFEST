@@ -28,3 +28,4 @@ lib/perfSONAR_PS/Transport.pm
 lib/perfSONAR_PS/Utils/NetLogger.pm
 lib/perfSONAR_PS/Utils/ParameterValidation.pm
 lib/perfSONAR_PS/XML/Document.pm
+perl-perfSONAR_PS-Nagios.spec
