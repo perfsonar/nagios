@@ -1,43 +1,43 @@
-%define _unpackaged_files_terminate_build      0
+%define _unpackaged_files_terminate_build 0
 %define install_base /opt/perfsonar_ps/nagios
 
 %define relnum 1
 %define disttag pSPS
 
-Name:           perl-perfSONAR_PS-Nagios
-Version:        3.3
-Release:        %{relnum}.%{disttag}
-Summary:        perfSONAR_PS Nagios Plugins
-License:        distributable, see LICENSE
-Group:          Development/Libraries
-Source0:        perfSONAR_PS-Nagios-%{version}.%{relnum}.tar.gz
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildArch:      noarch
-
-Requires:               perl(Carp)
-Requires:               perl(Data::UUID)
-Requires:               perl(Data::Validate::IP)
-Requires:               perl(English)
-Requires:               perl(Exporter)
-Requires:               perl(FindBin)
-Requires:               perl(Getopt::Long)
-Requires:               perl(IO::File)
-Requires:               perl(LWP::Simple)
-Requires:               perl(LWP::UserAgent)
-Requires:               perl(Log::Log4perl)
-Requires:               perl(Nagios::Plugin)
-Requires:               perl(Params::Validate)
-Requires:               perl(Statistics::Descriptive)
-Requires:               perl(Time::HiRes)
-Requires:               perl(XML::LibXML)
-#Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
-Requires:       perl
-Requires:       coreutils
-Requires:       shadow-utils
-Requires:       chkconfig
+Name:			perl-perfSONAR_PS-Nagios
+Version:		3.3
+Release:		%{relnum}.%{disttag}
+Summary:		perfSONAR_PS Nagios Plugins
+License:		Distributable, see LICENSE
+Group:			Development/Libraries
+URL:			http://www.nagios.org/
+Source0:		perfSONAR_PS-Nagios-%{version}.%{relnum}.tar.gz
+BuildRoot:		%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch:		noarch
+Requires:		perl
+Requires:		perl(Carp)
+Requires:		perl(Data::UUID)
+Requires:		perl(Data::Validate::IP)
+Requires:		perl(English)
+Requires:		perl(Exporter)
+Requires:		perl(FindBin)
+Requires:		perl(Getopt::Long)
+Requires:		perl(IO::File)
+Requires:		perl(LWP::Simple)
+Requires:		perl(LWP::UserAgent)
+Requires:		perl(Log::Log4perl)
+Requires:		perl(Nagios::Plugin)
+Requires:		perl(Params::Validate)
+Requires:		perl(Statistics::Descriptive)
+Requires:		perl(Time::HiRes)
+Requires:		perl(XML::LibXML)
+Requires:		chkconfig
+Requires:		coreutils
+Requires:		shadow-utils
 
 %description
-The perfSONAR_PS-Nagios Plugins can be used with Nagios to monitor the various perfSONAR services.
+The perfSONAR_PS-Nagios Plugins can be used with Nagios to monitor the various
+perfSONAR services.
 
 %pre
 /usr/sbin/groupadd perfsonar 2> /dev/null || :
@@ -49,18 +49,16 @@ The perfSONAR_PS-Nagios Plugins can be used with Nagios to monitor the various p
 %build
 
 %install
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
 
-make ROOTPATH=$RPM_BUILD_ROOT/%{install_base} rpminstall
+make ROOTPATH=%{buildroot}/%{install_base} rpminstall
 
+%clean
+rm -rf %{buildroot}
 
 %post
 mkdir -p /var/log/perfsonar/nagios
 chown perfsonar:perfsonar /var/log/perfsonar/nagios
-
-
-%clean
-rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,perfsonar,perfsonar,-)
@@ -68,3 +66,5 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,perfsonar,perfsonar) %{install_base}/bin/*
 %attr(0755,perfsonar,perfsonar) %{install_base}/lib/*
 %{install_base}/doc/*
+
+%changelog
