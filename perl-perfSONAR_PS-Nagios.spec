@@ -1,4 +1,3 @@
-%define _unpackaged_files_terminate_build 0
 %define install_base /opt/perfsonar_ps/nagios
 
 %define relnum 1
@@ -62,9 +61,10 @@ chown perfsonar:perfsonar /var/log/perfsonar/nagios
 
 %files
 %defattr(-,perfsonar,perfsonar,-)
+%doc %{install_base}/doc/*
 %config %{install_base}/etc/*
 %attr(0755,perfsonar,perfsonar) %{install_base}/bin/*
 %attr(0755,perfsonar,perfsonar) %{install_base}/lib/*
-%{install_base}/doc/*
+%{install_base}/dependencies
 
 %changelog
