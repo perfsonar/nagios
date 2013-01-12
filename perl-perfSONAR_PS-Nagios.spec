@@ -68,3 +68,5 @@ chown perfsonar:perfsonar /var/log/perfsonar/nagios
 %{install_base}/dependencies
 
 %changelog
+* Fri Jan 11 2013 asides@es.net 3.3-1
+- 3.3 beta release
