@@ -12,10 +12,11 @@ use perfSONAR_PS::ServiceChecks::ThroughputCheck;
 
 use constant BW_SCALE => 10e8;
 use constant BW_LABEL => 'Gbps';
+use constant DEFAULT_DIGITS => 3;
 
 my $np = Nagios::Plugin->new( shortname => 'PS_CHECK_THROUGHPUT',
                               timeout => 60,
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -v|--verbose -p|--protocol <protocol> --t|timeout <timeout>" );
+                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -v|--verbose -p|--protocol <protocol> --t|timeout <timeout> --digits <significant-digits>" );
 
 #get arguments
 $np->add_arg(spec => "u|url=s",
@@ -36,6 +37,9 @@ $np->add_arg(spec => "b|bidirectional",
 $np->add_arg(spec => "r|range=i",
              help => "Time range (in seconds) in the past to look at data. i.e. 60 means look at last 60 seconds of data.",
              required => 1 );
+$np->add_arg(spec => "digits=i",
+             help => "Sets the number of significant digits reported after the decimal in results. Must be greater than 0. Defaults to 3.",
+             required => 0 );
 $np->add_arg(spec => "w|warning=s",
              help => "threshold of bandwidth (in " . BW_LABEL . ") that leads to WARNING status",
              required => 1 );
@@ -66,6 +70,11 @@ if($stats->count() == 0 ){
 }
 
 # format nagios output
+my $digits = DEFAULT_DIGITS;
+if(defined $np->opts->{'digits'} && $np->opts->{'digits'} ne '' && $np->opts->{'digits'} >= 0){
+    $digits = $np->opts->{'digits'};
+}
+
 $np->add_perfdata(
         label => 'Count',
         value => $stats->count(),
@@ -116,7 +125,7 @@ my $code = $np->check_threshold(
 
 my $msg = "";   
 if($code eq OK || $code eq WARNING || $code eq CRITICAL){
-    $msg = "Average throughput is " . $stats->mean()/BW_SCALE . BW_LABEL;
+    $msg = "Average throughput is " . sprintf("%.${digits}f", $stats->mean()/BW_SCALE) . BW_LABEL;
 }else{
     $msg = "Error analyzing results";
 }
