@@ -3,7 +3,7 @@ package perfSONAR_PS::ServiceChecks::ThroughputCheck;
 use strict;
 use warnings;
 
-our $VERSION = "3.2.1";
+our $VERSION = 3.3;
 
 use fields;
 use Data::Validate::IP qw(is_ipv4 is_ipv6);
