@@ -17,7 +17,7 @@ my $np = Nagios::Plugin->new(
 	shortname => 'check_sls',
 	timeout   => 60,
 	usage     =>
-"Usage: %s -c|--critical <critical-threshold> -d|--domain <dns domain of the record> -g|--groupcommunities<groups or communities> --key <key> -s|--service <service-type> -t|--type <type of record> -u|--url <serviceglsURL>  --value <value> -v|--verbose  -w|--warning <warning-threshold>"
+"Usage: %s -c|--critical <critical-threshold> -d|--domain <dns domain of the record> -f|file <file containing list of LS urls> -g|--groupcommunities<groups or communities> --key <key> -s|--service <service-type> -t|--type <type of record> -u|--url <serviceglsURL>  --value <value> -v|--verbose  -w|--warning <warning-threshold>"
 );
 
 #get arguments
@@ -30,6 +30,12 @@ $np->add_arg(
 $np->add_arg(
 	spec     => "-d|domain=s",
 	help     => "dns domain of the record",
+	required => 0
+);
+
+$np->add_arg(
+	spec     => "-f|file=s",
+	help     => "file containing list of LS urls",
 	required => 0
 );
 
@@ -84,8 +90,9 @@ $np->add_arg(
 $np->getopts;
 
 my $cThresh     = $np->opts->{'c'};
-my $communities = $np->opts->{'g'};
+my $urlfile     = $np->opts->{'f'};
 my $domain      = $np->opts->{'d'};
+my $communities = $np->opts->{'g'};
 my $key         = $np->opts->{'key'};
 my $service     = $np->opts->{'s'};
 my $recordType  = $np->opts->{'t'};
@@ -95,13 +102,19 @@ my $value       = $np->opts->{'value'};
 my $verbose     = $np->opts->{'v'};
 
 #result variable - default is 0
-my $service_count = 0;
+my $record_count = 0;
 my $msg;
 
-if ( ( !defined $slsURL || $slsURL eq '' ) ) {
+if (   ( !defined $slsURL || $slsURL eq '' )
+	&& ( !defined $urlfile || $urlfile eq '' ) )
+{
 	print "Please specify LS URL or hints file \n";
 	exit(1);
-}
+}elsif(( defined $slsURL && $slsURL ne '' )
+	&& ( defined $urlfile && $urlfile ne '' )){
+	print "Conflicting options specified. Please specify any one: LS URL or hints file \n";
+	exit(1);
+	}
 
 if (   ( defined $key && !defined $value )
 	|| ( !defined $key && defined $value ) )
@@ -110,91 +123,111 @@ if (   ( defined $key && !defined $value )
 	exit(1);
 }
 
-my $host;
-my $port;
-if ( $slsURL ne '' ) {
-	my $uri = URI->new($slsURL);
-	$host = $uri->host;
-	$port = $uri->port;
+
+my @slsList;
+if ( ( defined $slsURL && $slsURL ne '' ) ) {
+	push( @slsList, $slsURL );
+}
+elsif ( defined $urlfile && $urlfile ne '' ) {
+	open( FILEHANDLE, $urlfile ) || die("Could not open file!");
+	while (<FILEHANDLE>) {
+		chomp;
+		my $test = $_;
+		$test =~ s/^\s+//;
+		push( @slsList, $test );
+	}
+	close(FILEHANDLE);
 }
 
-my $server = SimpleLookupService::Client::SimpleLS->new();
-$server->setUrl($slsURL);
-$server->connect();
-
-if ($verbose) {
-	print $server->getStatus, "--", $server->getLatency, "\n";
+if($verbose){
+	print "\n List of urls: \n", @slsList, "\n";
 }
 
-if ( $server->getStatus eq 'alive' ) {
-	my $queryObj = SimpleLookupService::QueryObjects::QueryObject->new();
-	$queryObj->init();
-
-	if ( defined $recordType && $recordType ne '' ) {
-
-		$queryObj->setRecordType($recordType);
-
+foreach my $lsurl (@slsList) {
+	my $host;
+	my $port;
+	if ( $lsurl ne '' ) {
+		my $uri = URI->new($lsurl);
+		$host = $uri->host;
+		$port = $uri->port;
 	}
-
-	if ( defined $key && defined $value ) {
-		$queryObj->addField( { key => $key, value => $value } );
-	}
-
-	if ( defined $domain ) {
-		$queryObj->addField(
-			{
-				key =>
-				  (SimpleLookupService::Keywords::KeyNames::LS_KEY_GROUP_DOMAINS
-				  ),
-				value => $domain
-			}
-		);
-	}
-
-	if ( defined $communities ) {
-		$queryObj->addField(
-			{
-				key =>
-				  (perfSONAR_PS::Client::LS::PSKeywords::PSKeyNames::LS_KEY_GROUP_COMMUNITIES
-				  ),
-				value => $communities
-			}
-		);
-	}
-
-	if ( defined $service ) {
-		$queryObj->addField(
-			{
-				key =>
-				  (SimpleLookupService::Keywords::KeyNames::LS_KEY_SERVICE_TYPE
-				  ),
-				value => $service
-			}
-		);
-	}
-
+	my $server = SimpleLookupService::Client::SimpleLS->new();
+	$server->setUrl($lsurl);
+	$server->connect();
 	if ($verbose) {
-		print $queryObj->toURLParameters, "\n";
+		print "\nStatus(Latency) of ",$server->getUrl(),": ",$server->getStatus, "(", $server->getLatency, ")\n";
 	}
 
-	my $client = perfSONAR_PS::Client::LS::PSClient::PSQuery->new();
-	$client->init( { server => $server, query => $queryObj } );
-	my $res = $client->query();
+	if ( $server->getStatus eq 'alive' ) {
+		my $queryObj = SimpleLookupService::QueryObjects::QueryObject->new();
+		$queryObj->init();
 
-	my @recordArray = @{$res};
+		if ( defined $recordType && $recordType ne '' ) {
 
-	$service_count = scalar @recordArray;
+			$queryObj->setRecordType($recordType);
+
+		}
+
+		if ( defined $key && defined $value ) {
+			$queryObj->addField( { key => $key, value => $value } );
+		}
+
+		if ( defined $domain ) {
+			$queryObj->addField(
+				{
+					key =>
+					  ( SimpleLookupService::Keywords::KeyNames::LS_KEY_GROUP_DOMAINS
+					  ),
+					value => $domain
+				}
+			);
+		}
+
+		if ( defined $communities ) {
+			$queryObj->addField(
+				{
+					key =>
+					  ( perfSONAR_PS::Client::LS::PSKeywords::PSKeyNames::LS_KEY_GROUP_COMMUNITIES
+					  ),
+					value => $communities
+				}
+			);
+		}
+
+		if ( defined $service ) {
+			$queryObj->addField(
+				{
+					key =>
+					  ( SimpleLookupService::Keywords::KeyNames::LS_KEY_SERVICE_TYPE
+					  ),
+					value => $service
+				}
+			);
+		}
+
+		if ($verbose) {
+			print $queryObj->toURLParameters, "\n";
+		}
+
+		my $client = perfSONAR_PS::Client::LS::PSClient::PSQuery->new();
+		$client->init( { server => $server, query => $queryObj } );
+		my $res = $client->query();
+
+		my @recordArray = @{$res};
+
+		$record_count += scalar @recordArray;
+	}
 }
 
 #add service count to output
 $np->add_perfdata(
 	'label' => 'RECORDS_COUNT',
-	'value' => $service_count
+	'value' => $record_count
 );
 
 # check thresholds and set return values
 my $code = $np->check_threshold(
-	check    => $service_count,
+	check    => $record_count,
 	warning  => $wThresh,
 	critical => $cThresh,
 );
