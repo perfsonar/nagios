@@ -10,12 +10,14 @@ use SimpleLookupService::QueryObjects::QueryObject;
 use SimpleLookupService::QueryObjects::QueryObjectFactory;
 use SimpleLookupService::Client::SimpleLS;
 use perfSONAR_PS::Client::LS::PSClient::PSQuery;
+use SimpleLookupService::Keywords::KeyNames;
+use perfSONAR_PS::Client::LS::PSKeywords::PSKeyNames;
 
 my $np = Nagios::Plugin->new(
 	shortname => 'check_sls',
 	timeout   => 60,
 	usage     =>
-"Usage: %s -c|--critical <critical-threshold> --key <key> -t|--type <type of record> -u|--url <serviceglsURL>  --value <value> -v|--verbose  -w|--warning <warning-threshold>"
+"Usage: %s -c|--critical <critical-threshold> -d|--domain <dns domain of the record> -g|--groupcommunities<groups or communities> --key <key> -t|--type <type of record> -u|--url <serviceglsURL>  --value <value> -v|--verbose  -w|--warning <warning-threshold>"
 );
 
 #get arguments
@@ -23,6 +25,18 @@ $np->add_arg(
 	spec     => "c|critical=s",
 	help     => "threshold to show critical state",
 	required => 1
+);
+
+$np->add_arg(
+	spec     => "-d|domain=s",
+	help     => "dns domain of the record",
+	required => 0
+);
+
+$np->add_arg(
+	spec     => "-g|groupcommunities=s",
+	help     => "groups or communities to which the record belongs",
+	required => 0
 );
 
 $np->add_arg(
@@ -64,6 +78,8 @@ $np->add_arg(
 $np->getopts;
 
 my $cThresh  = $np->opts->{'c'};
+my $communities  = $np->opts->{'g'};
+my $domain = $np->opts->{'d'};
 my $key = $np->opts->{'key'};
 my $recordType = $np->opts->{'t'};
 my $slsURL     = $np->opts->{'u'};
@@ -120,6 +136,14 @@ if ( $server->getStatus eq 'alive' ) {
 	
 	if(defined $key && defined $value){
 		$queryObj->addField({key=>$key,value=>$value});
+	}
+	
+	if(defined $domain){
+		$queryObj->addField({key=>(SimpleLookupService::Keywords::KeyNames::LS_KEY_GROUP_DOMAINS),value=>$domain});
+	}
+	
+	if(defined $communities){
+		$queryObj->addField({key=>(perfSONAR_PS::Client::LS::PSKeywords::PSKeyNames::LS_KEY_GROUP_COMMUNITIES),value=>$communities});
 	}
 	
 
