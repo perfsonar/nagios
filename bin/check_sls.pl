@@ -17,7 +17,7 @@ my $np = Nagios::Plugin->new(
 	shortname => 'check_sls',
 	timeout   => 60,
 	usage     =>
-"Usage: %s -c|--critical <critical-threshold> -d|--domain <dns domain of the record> -g|--groupcommunities<groups or communities> --key <key> -t|--type <type of record> -u|--url <serviceglsURL>  --value <value> -v|--verbose  -w|--warning <warning-threshold>"
+"Usage: %s -c|--critical <critical-threshold> -d|--domain <dns domain of the record> -g|--groupcommunities<groups or communities> --key <key> -s|--service <service-type> -t|--type <type of record> -u|--url <serviceglsURL>  --value <value> -v|--verbose  -w|--warning <warning-threshold>"
 );
 
 #get arguments
@@ -42,6 +42,12 @@ $np->add_arg(
 $np->add_arg(
 	spec     => "key=s",
 	help     => "the key in key-value to be searched",
+	required => 0
+);
+
+$np->add_arg(
+	spec     => "s|service=s",
+	help     => "service type of the record",
 	required => 0
 );
 
@@ -77,26 +83,29 @@ $np->add_arg(
 
 $np->getopts;
 
-my $cThresh  = $np->opts->{'c'};
-my $communities  = $np->opts->{'g'};
-my $domain = $np->opts->{'d'};
-my $key = $np->opts->{'key'};
-my $recordType = $np->opts->{'t'};
-my $slsURL     = $np->opts->{'u'};
-my $wThresh    = $np->opts->{'w'};
-my $value    = $np->opts->{'value'};
-my $verbose    = $np->opts->{'v'};
+my $cThresh     = $np->opts->{'c'};
+my $communities = $np->opts->{'g'};
+my $domain      = $np->opts->{'d'};
+my $key         = $np->opts->{'key'};
+my $service     = $np->opts->{'s'};
+my $recordType  = $np->opts->{'t'};
+my $slsURL      = $np->opts->{'u'};
+my $wThresh     = $np->opts->{'w'};
+my $value       = $np->opts->{'value'};
+my $verbose     = $np->opts->{'v'};
 
 #result variable - default is 0
 my $service_count = 0;
 my $msg;
 
-if (  (!defined $slsURL || $slsURL eq '' )) {
+if ( ( !defined $slsURL || $slsURL eq '' ) ) {
 	print "Please specify LS URL or hints file \n";
 	exit(1);
 }
 
-if((defined $key && !defined $value) || (!defined $key && defined $value)){
+if (   ( defined $key && !defined $value )
+	|| ( !defined $key && defined $value ) )
+{
 	print "Please specify key and value \n";
 	exit(1);
 }
@@ -113,44 +122,61 @@ my $server = SimpleLookupService::Client::SimpleLS->new();
 $server->setUrl($slsURL);
 $server->connect();
 
-if($verbose){
-	print $server->getStatus, "--", $server->getLatency, "\n";	
+if ($verbose) {
+	print $server->getStatus, "--", $server->getLatency, "\n";
 }
 
-
 if ( $server->getStatus eq 'alive' ) {
-	my $queryObj;
-	if ( defined $recordType && $recordType ne '' ) {
-		$queryObj =SimpleLookupService::QueryObjects::QueryObjectFactory->instantiate($recordType);
-		$queryObj->init();
-	
-		if($queryObj->getRecordType eq ''){
-			$queryObj->setRecordType($recordType);
-		}
-		
-	}
-	else {
-		$queryObj = SimpleLookupService::QueryObjects::QueryObject->new();
-		$queryObj->init();
-	}
-	
-	if(defined $key && defined $value){
-		$queryObj->addField({key=>$key,value=>$value});
-	}
-	
-	if(defined $domain){
-		$queryObj->addField({key=>(SimpleLookupService::Keywords::KeyNames::LS_KEY_GROUP_DOMAINS),value=>$domain});
-	}
-	
-	if(defined $communities){
-		$queryObj->addField({key=>(perfSONAR_PS::Client::LS::PSKeywords::PSKeyNames::LS_KEY_GROUP_COMMUNITIES),value=>$communities});
-	}
-	
+	my $queryObj = SimpleLookupService::QueryObjects::QueryObject->new();
+	$queryObj->init();
 
-	if($verbose){
+	if ( defined $recordType && $recordType ne '' ) {
+
+		$queryObj->setRecordType($recordType);
+
+	}
+
+	if ( defined $key && defined $value ) {
+		$queryObj->addField( { key => $key, value => $value } );
+	}
+
+	if ( defined $domain ) {
+		$queryObj->addField(
+			{
+				key =>
+				  (SimpleLookupService::Keywords::KeyNames::LS_KEY_GROUP_DOMAINS
+				  ),
+				value => $domain
+			}
+		);
+	}
+
+	if ( defined $communities ) {
+		$queryObj->addField(
+			{
+				key =>
+				  (perfSONAR_PS::Client::LS::PSKeywords::PSKeyNames::LS_KEY_GROUP_COMMUNITIES
+				  ),
+				value => $communities
+			}
+		);
+	}
+
+	if ( defined $service ) {
+		$queryObj->addField(
+			{
+				key =>
+				  (SimpleLookupService::Keywords::KeyNames::LS_KEY_SERVICE_TYPE
+				  ),
+				value => $service
+			}
+		);
+	}
+
+	if ($verbose) {
 		print $queryObj->toURLParameters, "\n";
 	}
-	
+
 	my $client = perfSONAR_PS::Client::LS::PSClient::PSQuery->new();
 	$client->init( { server => $server, query => $queryObj } );
 	my $res = $client->query();
