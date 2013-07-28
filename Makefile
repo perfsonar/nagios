@@ -1,7 +1,7 @@
 PACKAGE=perfSONAR_PS-Nagios
 ROOTPATH=/opt/perfsonar_ps/nagios
 VERSION=3.3
-RELEASE=2
+RELEASE=3
 
 default:
 	@echo No need to build the package. Just run \"make install\"
