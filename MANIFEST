@@ -29,6 +29,7 @@ lib/SimpleLookupService/QueryObjects/Network/InterfaceQueryObject.pm
 lib/SimpleLookupService/QueryObjects/Network/ServiceQueryObject.pm
 lib/SimpleLookupService/QueryObjects/QueryObject.pm
 lib/SimpleLookupService/QueryObjects/QueryObjectFactory.pm
+lib/SimpleLookupService/Records/Directory/Person.pm
 lib/SimpleLookupService/Records/Network/Host.pm
 lib/SimpleLookupService/Records/Network/Interface.pm
 lib/SimpleLookupService/Records/Network/Service.pm
