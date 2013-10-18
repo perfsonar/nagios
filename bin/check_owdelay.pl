@@ -11,6 +11,7 @@ use Socket;
 use Statistics::Descriptive;
 use perfSONAR_PS::Common qw( find findvalue );
 use perfSONAR_PS::Client::MA;
+use perfSONAR_PS::Utils::DNS qw( reverse_dns resolve_address);
 use XML::LibXML;
 
 
@@ -305,33 +306,39 @@ sub get_endpoint_type {
 sub get_ip_and_host {
     my ( $endpoint ) = @_;
     
-    my $ip = "";
-    my $hostname = "";
+    my %result = ();
     
     if( is_ipv4($endpoint) ){
-        $ip = $endpoint;
+        my $hostname = '';
+        $result{'ip'} = $endpoint;
         my $tmp_addr = Socket::inet_aton( $endpoint );
         if ( defined $tmp_addr and $tmp_addr ) {
             $hostname = gethostbyaddr( $tmp_addr, Socket::AF_INET );
         }
-        $hostname = $endpoint unless $hostname;
+        $result{'hostname'} = $hostname if($hostname);
     }elsif( is_ipv6($endpoint) ){
-        $ip = $endpoint;
-        #try to lookup v6 record?
-        $hostname = $endpoint;
+        $result{'ip'} = normalize_ipv6($endpoint);
+        my $hostname = reverse_dns($result{'ip'});
+        $result{'hostname'} = $hostname if($hostname);
     }else{
         #if not ipv4 or ipv6 then assume a hostname
-        $hostname = $endpoint;
-        my $packed_ip = gethostbyname( $endpoint );
-        if ( defined $packed_ip and $packed_ip ) {
-            $ip = inet_ntoa( $packed_ip );
+        $result{'hostname'} = $endpoint;
+        my @addresses = resolve_address($endpoint);
+        for(my $i =0; $i < @addresses; $i++){
+            $result{"ip.$i"} = normalize_ipv6($addresses[$i]) unless($addresses[$i] eq $result{'hostname'});
         }
-        $ip = $endpoint unless $ip;
     }
     
-    return { 'ip' => $ip, 'hostname' => $hostname };
+    return \%result;
 }
 
+sub normalize_ipv6 {
+    my $ipv6 = shift @_;
+    
+    $ipv6 =~ s/(:0+)+:/::/g;
+    
+    return $ipv6;
+}
 sub check_exclude_one_endpoint {
     my ($doc, $endpoint_addrs, $type, $bidir, $excludedTests) = @_;
     
@@ -382,6 +389,7 @@ sub check_exclude_two_endpoints {
 sub endpoint_matches {
     my( $ep1, $ep2 ) = @_;
     
+    $ep1 = normalize_ipv6($ep1);
     foreach my $ep2_type(keys %{ $ep2 }){
         if( lc($ep1."") eq lc($ep2->{$ep2_type}) ){
             return 1;
