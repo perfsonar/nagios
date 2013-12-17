@@ -1,6 +1,6 @@
 %define install_base /opt/perfsonar_ps/nagios
 
-%define relnum 1 
+%define relnum 2 
 %define disttag pSPS
 
 Name:			perl-perfSONAR_PS-Nagios
@@ -30,6 +30,8 @@ Requires:		perl(Params::Validate)
 Requires:		perl(Statistics::Descriptive)
 Requires:		perl(Time::HiRes)
 Requires:		perl(XML::LibXML)
+Requires:		perl(Cache::Memcached)
+Requires:		memcached
 Requires:		chkconfig
 Requires:		coreutils
 Requires:		shadow-utils
@@ -58,6 +60,7 @@ rm -rf %{buildroot}
 %post
 mkdir -p /var/log/perfsonar/nagios
 chown perfsonar:perfsonar /var/log/perfsonar/nagios
+chkconfig memcached on
 
 %files
 %defattr(-,perfsonar,perfsonar,-)

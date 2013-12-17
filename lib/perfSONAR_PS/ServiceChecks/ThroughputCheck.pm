@@ -25,46 +25,56 @@ sub new {
 }
 
 sub doCheck {
-    my ($self, $ma, $src, $dst, $time_int, $bidir, $protocol, $stats, $timeout) = @_;
+    my ($self, $ma_url, $src, $dst, $time_int, $bidir, $protocol, $stats, $timeout, $memd, $memd_expire_time ) = @_;
     
+    my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, alarm_disabled => 1 } );
     my %endpoint_addrs = ();
     $timeout = 60 if(!$timeout);
     $endpoint_addrs{"src"} = $self->get_ip_and_host($src) if($src);
     $endpoint_addrs{"dst"} = $self->get_ip_and_host($dst) if($dst);
-    
-    # Define subject
-    my $subject = "<iperf:subject xmlns:iperf=\"http://ggf.org/ns/nmwg/tools/iperf/2.0\" id=\"subject\">\n";
-    $subject .= "      <nmwgt:endPointPair xmlns:nmwgt=\"http://ggf.org/ns/nmwg/topology/2.0/\"/>\n";
-    $subject .=   "</iperf:subject>\n";
-    
-    # Set eventType
-    my @eventTypes = ("http://ggf.org/ns/nmwg/tools/iperf/2.0");
-    
-    my $endTime = time;
-    my $startTime = $endTime - $time_int;
+    my $memd_key = 'check_throughput:' . $ma_url . ':' . $time_int;
     
     my $result = q{};
-    my $err_msg = q{};
-    my $alarm_msg = q{};
-    eval {
-        #store error in $alarm_msg because something overwriting $@
-        local $SIG{ALRM} = sub { $alarm_msg = "Timeout occurred while trying to contact MA"; die "alarm"; };
-        alarm $timeout;
-        $result = $ma->setupDataRequest(
-                    {
-                        start      => $startTime,
-                        end        => $endTime,
-                        subject    => $subject,
-                        eventTypes => \@eventTypes
-                    }
-              ) or ($err_msg = "Unable to contact MA. Please check that the MA is running and the URL is correct.");
-        alarm 0;
-    };
-    if($alarm_msg){
-        return $alarm_msg;
+    if($memd){
+        $result = $memd->get($memd_key);
     }
-    if($err_msg){
-        return $err_msg;
+    if(!$result){
+        # Define subject
+        my $subject = "<iperf:subject xmlns:iperf=\"http://ggf.org/ns/nmwg/tools/iperf/2.0\" id=\"subject\">\n";
+        $subject .= "      <nmwgt:endPointPair xmlns:nmwgt=\"http://ggf.org/ns/nmwg/topology/2.0/\"/>\n";
+        $subject .=   "</iperf:subject>\n";
+    
+        # Set eventType
+        my @eventTypes = ("http://ggf.org/ns/nmwg/tools/iperf/2.0");
+    
+        my $endTime = time;
+        my $startTime = $endTime - $time_int;
+    
+        my $err_msg = q{};
+        my $alarm_msg = q{};
+        eval {
+            #store error in $alarm_msg because something overwriting $@
+            local $SIG{ALRM} = sub { $alarm_msg = "Timeout occurred while trying to contact MA"; die "alarm"; };
+            alarm $timeout;
+            $result = $ma->setupDataRequest(
+                        {
+                            start      => $startTime,
+                            end        => $endTime,
+                            subject    => $subject,
+                            eventTypes => \@eventTypes
+                        }
+                  ) or ($err_msg = "Unable to contact MA. Please check that the MA is running and the URL is correct.");
+            alarm 0;
+        };
+        if($alarm_msg){
+            return $alarm_msg;
+        }
+        if($err_msg){
+            return $err_msg;
+        }
+        if($memd){
+            $memd->set($memd_key, $result, $memd_expire_time );
+        }
     }
     
     # Create parser

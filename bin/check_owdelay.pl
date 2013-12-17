@@ -5,6 +5,7 @@ use warnings;
 
 use FindBin qw($Bin);
 use lib "$Bin/../lib/";
+use Cache::Memcached;
 use Nagios::Plugin;
 use Data::Validate::IP qw(is_ipv4 is_ipv6);
 use Socket;
@@ -28,10 +29,13 @@ use constant LOSS_STRING => 'Loss';
 use constant HAS_METADATA => 1;
 use constant HAS_DATA => 2;
 use constant DEFAULT_DIGITS => 3;
+use constant DEFAULT_MEMD_ADDR => '127.0.0.1:11211';
+use constant DEFAULT_MEMD_EXP => 300;
+use constant DEFAULT_MEMD_COMPRESS_THRESH => 1000000;
 
 my $np = Nagios::Plugin->new( shortname => 'PS_CHECK_OWDELAY',
                               timeout => 60,
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -l|--loss -p|--percentage --digits <significant-digits> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> --t|timeout <timeout>" );
+                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -l|--loss -p|--percentage --digits <significant-digits> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -t|timeout <timeout> -m|memcached <server> -e|memcachedexp <expiretime>" );
 
 #get arguments
 $np->add_arg(spec => "u|url=s",
@@ -67,17 +71,40 @@ $np->add_arg(spec => "w|warning=s",
 $np->add_arg(spec => "c|critical=s",
              help => "threshold of delay (" . DELAY_LABEL . ") that leads to CRITICAL status. In loss mode this is average packets lost as an integer. If -p is specified in addition to -l, then number must be 0-100 (inclusive) and will be interpreted as a percentage.",
              required => 1 );
+$np->add_arg(spec => "m|memcached=s",
+             help => "Address of server in form <address>:<port> where memcached runs. Set to 'none' if want to disable memcached. Defaults to 127.0.0.1:11211",
+             required => 0 );
+$np->add_arg(spec => "e|memcachedexp=s",
+             help => "Time when you want memcached data to expire in seconds. Defaults to lesser of 5 minutes and -r option if not set.",
+             required => 0 );
 $np->getopts;                              
 
 #create client
 my $ma_url = $np->opts->{'u'};
-my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, alarm_disabled => 1 } );
 my $stats = Statistics::Descriptive::Sparse->new();
 my $EXCEPTION_CODE = UNKNOWN;
 if($np->opts->{'errwarn'}){
     $EXCEPTION_CODE = WARNING;
 }
-
+my $memd_addr = $np->opts->{'m'};
+if(!$memd_addr){
+    $memd_addr = DEFAULT_MEMD_ADDR;
+}
+my $memd  = q{};
+if(lc($memd_addr) ne 'none' ){
+    $memd  = new Cache::Memcached {
+        'servers' => [ $memd_addr ],
+        'debug' => 0,
+        'compress_threshold' => DEFAULT_MEMD_COMPRESS_THRESH,
+    };
+}
+my $memd_expire_time = $np->opts->{'e'};
+if(!$memd_expire_time){
+    $memd_expire_time = DEFAULT_MEMD_EXP;
+    if($np->opts->{'r'} < $memd_expire_time){
+        $memd_expire_time = $np->opts->{'r'};
+    }
+}
 
 #set metric
 my $metric = DELAY_FIELD;
@@ -94,7 +121,7 @@ if($np->opts->{'l'}){
 }
 
 #call client
-&send_data_request($ma, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $metric, $np->opts->{'b'}, $stats, $np->opts->{'timeout'}, $np->opts->{'p'});
+&send_data_request($ma_url, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $metric, $np->opts->{'b'}, $stats, $np->opts->{'timeout'}, $np->opts->{'p'});
 if($stats->count() == 0 ){
     my $errMsg = "No one-way delay data returned";
     $errMsg .= " for direction where" if($np->opts->{'s'} || $np->opts->{'d'});
@@ -146,39 +173,50 @@ $np->nagios_exit($code, $msg);
 
 #### SUBROUTINES
 sub send_data_request() {
-    my ($ma, $src, $dst, $time_int, $metric, $bidir, $stats, $timeout, $is_percentage) = @_;
+    my ($ma_url, $src, $dst, $time_int, $metric, $bidir, $stats, $timeout, $is_percentage) = @_;
+    
     my %endpoint_addrs = ();
     $endpoint_addrs{"src"} = &get_ip_and_host($src) if($src);
     $endpoint_addrs{"dst"} = &get_ip_and_host($dst) if($dst);
-    
-    # Define subject
-    my $subject = "<owamp:subject xmlns:owamp=\"http://ggf.org/ns/nmwg/tools/owamp/2.0/\" id=\"subject\">\n";
-    $subject .= "      <nmwgt:endPointPair xmlns:nmwgt=\"http://ggf.org/ns/nmwg/topology/2.0/\"/>\n";
-    $subject .=   "</owamp:subject>\n";
-    
-    # Set eventType
-    my @eventTypes = ("http://ggf.org/ns/nmwg/characteristic/delay/summary/20070921");
-    
-    my $endTime = time;
-    my $startTime = $endTime - $time_int;
+    my $memd_key = 'check_owdelay:' . $ma_url . ':' . $time_int;
     
     my $result = q{};
-    my $err_msg = q{};
-    eval {
-        local $SIG{ALRM} = sub {  $np->nagios_exit( $EXCEPTION_CODE, "Timeout occurred while trying to contact MA"); };
-        alarm $timeout;
-        $result = $ma->setupDataRequest(
-            {
-                start      => $startTime,
-                end        => $endTime,
-                subject    => $subject,
-                eventTypes => \@eventTypes
-            }
-        ) or ($err_msg = "Unable to contact MA. Please check that the MA is running and the URL is correct.");
-        alarm 0;
-    };
-    if($err_msg){
-        $np->nagios_exit( $EXCEPTION_CODE, $err_msg);
+    if($memd){
+        $result = $memd->get($memd_key);
+    }
+    if(!$result){
+        # Define subject
+        my $subject = "<owamp:subject xmlns:owamp=\"http://ggf.org/ns/nmwg/tools/owamp/2.0/\" id=\"subject\">\n";
+        $subject .= "      <nmwgt:endPointPair xmlns:nmwgt=\"http://ggf.org/ns/nmwg/topology/2.0/\"/>\n";
+        $subject .=   "</owamp:subject>\n";
+    
+        # Set eventType
+        my @eventTypes = ("http://ggf.org/ns/nmwg/characteristic/delay/summary/20070921");
+    
+        my $endTime = time;
+        my $startTime = $endTime - $time_int;
+    
+        my $err_msg = q{};
+        my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, alarm_disabled => 1 } );
+        eval {
+            local $SIG{ALRM} = sub {  $np->nagios_exit( $EXCEPTION_CODE, "Timeout occurred while trying to contact MA"); };
+            alarm $timeout;
+            $result = $ma->setupDataRequest(
+                {
+                    start      => $startTime,
+                    end        => $endTime,
+                    subject    => $subject,
+                    eventTypes => \@eventTypes
+                }
+            ) or ($err_msg = "Unable to contact MA. Please check that the MA is running and the URL is correct.");
+            alarm 0;
+        };
+        if($err_msg){
+            $np->nagios_exit( $EXCEPTION_CODE, $err_msg);
+        }
+        if($memd){
+            $memd->set($memd_key, $result, $memd_expire_time );
+        }
     }
     
     # Create parser
