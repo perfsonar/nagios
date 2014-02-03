@@ -5,6 +5,7 @@ use warnings;
 
 use FindBin qw($Bin);
 use lib "$Bin/../lib/";
+use Cache::Memcached;
 use Nagios::Plugin;
 use Statistics::Descriptive;
 use perfSONAR_PS::Client::MA;
@@ -13,10 +14,13 @@ use perfSONAR_PS::ServiceChecks::ThroughputCheck;
 use constant BW_SCALE => 10e8;
 use constant BW_LABEL => 'Gbps';
 use constant DEFAULT_DIGITS => 3;
+use constant DEFAULT_MEMD_ADDR => '127.0.0.1:11211';
+use constant DEFAULT_MEMD_EXP => 300;
+use constant DEFAULT_MEMD_COMPRESS_THRESH => 1000000;
 
 my $np = Nagios::Plugin->new( shortname => 'PS_CHECK_THROUGHPUT',
                               timeout => 60,
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -v|--verbose -p|--protocol <protocol> --t|timeout <timeout> --digits <significant-digits>" );
+                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -v|--verbose -p|--protocol <protocol> --t|timeout <timeout> --digits <significant-digits> -m|memcached <server> -e|memcachedexp <expiretime>" );
 
 #get arguments
 $np->add_arg(spec => "u|url=s",
@@ -46,16 +50,40 @@ $np->add_arg(spec => "w|warning=s",
 $np->add_arg(spec => "c|critical=s",
              help => "threshold of bandwidth (in " . BW_LABEL . ") that leads to CRITICAL status",
              required => 1 );
+$np->add_arg(spec => "m|memcached=s",
+             help => "Address of server in form <address>:<port> where memcached runs. Set to 'none' if want to disable memcached. Defaults to 127.0.0.1:11211",
+             required => 0 );
+$np->add_arg(spec => "e|memcachedexp=s",
+             help => "Time when you want memcached data to expire in seconds. Defaults to lesser of 5 minutes and -r option if not set.",
+             required => 0 );
 $np->getopts;                              
 
 #create client
 my $ma_url = $np->opts->{'u'};
-my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, alarm_disabled => 1 } );
 my $stats = Statistics::Descriptive::Sparse->new();
 my $checker = new perfSONAR_PS::ServiceChecks::ThroughputCheck;
+my $memd_addr = $np->opts->{'m'};
+if(!$memd_addr){
+    $memd_addr = DEFAULT_MEMD_ADDR;
+}
+my $memd  = q{};
+if(lc($memd_addr) ne 'none' ){
+    $memd  = new Cache::Memcached {
+        'servers' => [ $memd_addr ],
+        'debug' => 0,
+        'compress_threshold' => DEFAULT_MEMD_COMPRESS_THRESH,
+    };
+}
+my $memd_expire_time = $np->opts->{'e'};
+if(!$memd_expire_time){
+    $memd_expire_time = DEFAULT_MEMD_EXP;
+    if($np->opts->{'r'} < $memd_expire_time){
+        $memd_expire_time = $np->opts->{'r'};
+    }
+}
 
 #call client
-my $result = $checker->doCheck($ma, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $np->opts->{'b'}, $np->opts->{'p'}, $stats, $np->opts->{'timeout'});
+my $result = $checker->doCheck($ma_url, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $np->opts->{'b'}, $np->opts->{'p'}, $stats, $np->opts->{'timeout'}, $memd, $memd_expire_time );
 if($result){
     $np->nagios_die($result);
 }
