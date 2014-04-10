@@ -10,8 +10,8 @@ has 'memd' => (is => 'rw', isa => 'CacheMemcached | Undef');
 has 'memd_expire_time' => (is => 'rw', isa => 'Int', default => sub { 300 });
 
 sub do_check {
-    #my ($self, $ma_url, $src, $dst, $time_int, $bidir, $protocol, $timeout) = @_;
-    #return ($result_code, $stats);
+    #my ($self, parameters) = @_;
+    #return ($result_msg, $stats);
     die "Must override do_check";
 }
 

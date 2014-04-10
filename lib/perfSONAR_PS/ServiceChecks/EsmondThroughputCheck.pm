@@ -4,17 +4,18 @@ use Moose;
 
 use perfSONAR_PS::Client::Esmond::ApiConnect;
 use perfSONAR_PS::Client::Esmond::ApiFilters;
+use perfSONAR_PS::ServiceChecks::Parameters::ThroughputParameters;
 our $VERSION = 3.4;
 
 extends 'perfSONAR_PS::ServiceChecks::Check';
 
 override 'do_check' => sub {
-    my ($self, $ma_url, $src, $dst, $time_int, $bidir, $protocol, $timeout) = @_;
+    my ($self, $params) = @_;
     my $stats = Statistics::Descriptive::Sparse->new();
-    my $res = $self->call_ma($ma_url, $src, $dst, $time_int, $protocol, $timeout, $stats);
+    my $res = $self->call_ma($params->ma_url, $params->source, $params->destination, $params->time_range, $params->protocol, $params->timeout, $stats);
     return ($res, $stats) if($res);
-    if($bidir){
-        $res = $self->call_ma($ma_url, $dst, $src, $time_int, $protocol, $timeout, $stats);
+    if($params->bidirectional){
+        $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $params->protocol, $params->timeout, $stats);
         return ($res, $stats) if($res);
     }
     return ('', $stats);

@@ -10,6 +10,7 @@ use Nagios::Plugin;
 use Statistics::Descriptive;
 use perfSONAR_PS::Client::MA;
 use perfSONAR_PS::ServiceChecks::ThroughputCheck;
+use perfSONAR_PS::ServiceChecks::Parameters::ThroughputParameters;
 
 use constant BW_SCALE => 10e8;
 use constant BW_LABEL => 'Gbps';
@@ -82,8 +83,22 @@ if(!$memd_expire_time){
 
 #call client
 my $checker = new perfSONAR_PS::ServiceChecks::ThroughputCheck(memd => $memd, memd_expire_time => $memd_expire_time);
-my ($result, $stats) = $checker->do_check($ma_url, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $np->opts->{'b'}, $np->opts->{'p'}, $np->opts->{'timeout'});
-if($result){
+my $parameters = new perfSONAR_PS::ServiceChecks::Parameters::ThroughputParameters(
+    'ma_url' => $ma_url,
+    'source' => $np->opts->{'s'},
+    'destination' => $np->opts->{'d'},
+    'time_range' => $np->opts->{'r'},
+    'bidirectional' => $np->opts->{'b'},
+    'timeout' => $np->opts->{'timeout'},
+    'protocol' => $np->opts->{'p'},
+);
+my ($result, $stats);
+eval{
+    ($result, $stats) = $checker->do_check($parameters);
+};
+if($@){
+    $np->nagios_die("Error with underlying check: " . $@);
+}elsif($result){
     $np->nagios_die($result);
 }
 

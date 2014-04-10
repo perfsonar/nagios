@@ -10,6 +10,7 @@ use Data::Validate::IP qw(is_ipv4 is_ipv6);
 use Socket;
 use Statistics::Descriptive;
 use perfSONAR_PS::Common qw( find findvalue );
+use perfSONAR_PS::ServiceChecks::Parameters::ThroughputParameters;
 use perfSONAR_PS::Utils::DNS qw( reverse_dns resolve_address);
 use perfSONAR_PS::Client::MA;
 use XML::LibXML;
@@ -17,7 +18,14 @@ use constant HAS_METADATA => 1;
 use constant HAS_DATA => 2;
 
 override 'do_check' => sub {
-    my ($self, $ma_url, $src, $dst, $time_int, $bidir, $protocol, $timeout) = @_;
+    my ($self, $params) = @_;
+    my $ma_url = $params->ma_url;
+    my $src = $params->source;
+    my $dst = $params->destination;
+    my $time_int = $params->time_range;
+    my $bidir = $params->bidirectional;
+    my $protocol = $params->protocol;
+    my $timeout = $params->timeout;
     
     my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, alarm_disabled => 1 } );
     my $stats = Statistics::Descriptive::Sparse->new();
