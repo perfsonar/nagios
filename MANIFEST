@@ -1,5 +1,6 @@
 MANIFEST
 Makefile
+bin/check_delay.pl
 bin/check_gls.pl
 bin/check_hls.pl
 bin/check_ls.pl
@@ -61,6 +62,7 @@ lib/perfSONAR_PS/Client/Topology.pm
 lib/perfSONAR_PS/Common.pm
 lib/perfSONAR_PS/Messages.pm
 lib/perfSONAR_PS/ServiceChecks/Check.pm
+lib/perfSONAR_PS/ServiceChecks/DelayCheck.pm
 lib/perfSONAR_PS/ServiceChecks/ThroughputCheck.pm
 lib/perfSONAR_PS/ServiceChecks/EsmondOWDelayCheck.pm
 lib/perfSONAR_PS/ServiceChecks/EsmondThroughputCheck.pm

@@ -12,7 +12,10 @@ use constant STAT_MAP => {
     'min' => 'minimum',
     'median' => 'median',
     'max' => 'maximum',
-    'p95' => 'percentile-95th'
+    'mean' => 'mean',
+    'p25' => 'percentile-25',
+    'p75' => 'percentile-75',
+    'p95' => 'percentile-95'
 };
 
 override 'do_check' => sub {
