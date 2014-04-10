@@ -64,12 +64,15 @@ lib/perfSONAR_PS/ServiceChecks/Check.pm
 lib/perfSONAR_PS/ServiceChecks/ThroughputCheck.pm
 lib/perfSONAR_PS/ServiceChecks/EsmondOWDelayCheck.pm
 lib/perfSONAR_PS/ServiceChecks/EsmondThroughputCheck.pm
+lib/perfSONAR_PS/ServiceChecks/EsmondTracerouteCheck.pm
 lib/perfSONAR_PS/ServiceChecks/OWDelayCheck.pm
 lib/perfSONAR_PS/ServiceChecks/PSBOWDelayCheck.pm
 lib/perfSONAR_PS/ServiceChecks/PSBThroughputCheck.pm
+lib/perfSONAR_PS/ServiceChecks/PSBTracerouteCheck.pm
 lib/perfSONAR_PS/ServiceChecks/Parameters/CheckParameters.pm
 lib/perfSONAR_PS/ServiceChecks/Parameters/LatencyParameters.pm
 lib/perfSONAR_PS/ServiceChecks/Parameters/ThroughputParameters.pm
+lib/perfSONAR_PS/ServiceChecks/TracerouteCheck.pm
 lib/perfSONAR_PS/Transport.pm
 lib/perfSONAR_PS/Utils/DNS.pm
 lib/perfSONAR_PS/Utils/NetLogger.pm
