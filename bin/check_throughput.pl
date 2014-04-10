@@ -8,7 +8,6 @@ use lib "$Bin/../lib/";
 use Cache::Memcached;
 use Nagios::Plugin;
 use Statistics::Descriptive;
-use perfSONAR_PS::Client::MA;
 use perfSONAR_PS::ServiceChecks::ThroughputCheck;
 use perfSONAR_PS::ServiceChecks::Parameters::ThroughputParameters;
 
