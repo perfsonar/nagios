@@ -60,13 +60,11 @@ $np->getopts;
 
 #create client
 my $ma_url = $np->opts->{'u'};
-my $stats = Statistics::Descriptive::Sparse->new();
-my $checker = new perfSONAR_PS::ServiceChecks::ThroughputCheck;
 my $memd_addr = $np->opts->{'m'};
 if(!$memd_addr){
     $memd_addr = DEFAULT_MEMD_ADDR;
 }
-my $memd  = q{};
+my $memd = undef;
 if(lc($memd_addr) ne 'none' ){
     $memd  = new Cache::Memcached {
         'servers' => [ $memd_addr ],
@@ -83,7 +81,8 @@ if(!$memd_expire_time){
 }
 
 #call client
-my $result = $checker->doCheck($ma_url, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $np->opts->{'b'}, $np->opts->{'p'}, $stats, $np->opts->{'timeout'}, $memd, $memd_expire_time );
+my $checker = new perfSONAR_PS::ServiceChecks::ThroughputCheck(memd => $memd, memd_expire_time => $memd_expire_time);
+my ($result, $stats) = $checker->do_check($ma_url, $np->opts->{'s'}, $np->opts->{'d'}, $np->opts->{'r'}, $np->opts->{'b'}, $np->opts->{'p'}, $np->opts->{'timeout'});
 if($result){
     $np->nagios_die($result);
 }
