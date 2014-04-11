@@ -1,7 +1,10 @@
 MANIFEST
 Makefile
 bin/check_delay.pl
+bin/check_loss.pl
 bin/check_owdelay.pl
+bin/check_path_mtu.pl
+bin/check_retransmits.pl
 bin/check_sls.pl
 bin/check_throughput.pl
 bin/check_traceroute.pl
@@ -71,6 +74,13 @@ lib/perfSONAR_PS/ServiceChecks/OWDelayCheck.pm
 lib/perfSONAR_PS/ServiceChecks/PSBOWDelayCheck.pm
 lib/perfSONAR_PS/ServiceChecks/PSBThroughputCheck.pm
 lib/perfSONAR_PS/ServiceChecks/PSBTracerouteCheck.pm
+lib/perfSONAR_PS/ServiceChecks/SimpleEventTypeCheck.pm
+lib/perfSONAR_PS/ServiceChecks/Commands/NagiosCmd.pm
+lib/perfSONAR_PS/ServiceChecks/Commands/NagiosDelayCmd.pm
+lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCmd.pm
+lib/perfSONAR_PS/ServiceChecks/Commands/NagiosOwdelayCmd.pm
+lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputCmd.pm
+lib/perfSONAR_PS/ServiceChecks/Commands/NagiosTracerouteCmd.pm
 lib/perfSONAR_PS/ServiceChecks/Parameters/CheckParameters.pm
 lib/perfSONAR_PS/ServiceChecks/Parameters/LatencyParameters.pm
 lib/perfSONAR_PS/ServiceChecks/Parameters/ThroughputParameters.pm
