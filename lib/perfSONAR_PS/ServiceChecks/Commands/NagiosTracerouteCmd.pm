@@ -22,7 +22,7 @@ the SOAP interface.
 
 =cut
 
-sub build_plugin {
+override 'build_plugin' => sub {
     my $self = shift;
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
                               usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -t|--timeout <timeout>",
@@ -49,14 +49,14 @@ sub build_plugin {
                  required => 1 );
 
     return $np;
-}
+};
 
-sub build_check {
+override 'build_check' => sub {
     my ($self, $np) = @_;
     return new perfSONAR_PS::ServiceChecks::TracerouteCheck();
-}
+};
 
-sub build_check_parameters {
+override 'build_check_parameters' => sub {
     my ($self, $np) = @_;
     return new perfSONAR_PS::ServiceChecks::Parameters::CheckParameters(
         'ma_url' => $np->opts->{'u'},
@@ -65,6 +65,6 @@ sub build_check_parameters {
         'time_range' => $np->opts->{'r'},
         'timeout' => $np->opts->{'timeout'},
     );
-}
+};
 
 1;

@@ -78,3 +78,5 @@ sub call_ma {
     
     return '';  
 }
+
+1;

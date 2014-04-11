@@ -46,3 +46,5 @@ override 'do_check' => sub {
     
     return ('', $stats);
 };
+
+1;

@@ -21,3 +21,5 @@ override 'do_check' => sub {
     
     return $check->do_check($params);
 };
+
+1;

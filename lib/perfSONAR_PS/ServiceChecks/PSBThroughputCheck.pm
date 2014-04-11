@@ -311,3 +311,5 @@ sub record_endpoints {
     $mdIdMap->{$mdId} = $dst.'->'.$src;
     $mdEndpointMap->{$src.'->'.$dst} = HAS_METADATA;
 }
+
+1;

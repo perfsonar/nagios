@@ -25,7 +25,7 @@ use constant DEFAULT_MEMD_ADDR => '127.0.0.1:11211';
 use constant DEFAULT_MEMD_EXP => 300;
 use constant DEFAULT_MEMD_COMPRESS_THRESH => 1000000;
 
-sub build_plugin {
+override 'build_plugin' => sub {
     my $self = shift;
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
                               timeout => $self->timeout,
@@ -67,9 +67,9 @@ sub build_plugin {
                  required => 0 );
 
     return $np;
-}
+};
 
-sub build_check {
+override 'build_check' => sub {
     my ($self, $np) = @_;
     my $memd_addr = $np->opts->{'m'};
     if(!$memd_addr){
@@ -92,9 +92,9 @@ sub build_check {
     }
      
     return new perfSONAR_PS::ServiceChecks::ThroughputCheck(memd => $memd, memd_expire_time => $memd_expire_time);
-}
+};
 
-sub build_check_parameters {
+override 'build_check_parameters' => sub {
     my ($self, $np) = @_;
     return new perfSONAR_PS::ServiceChecks::Parameters::ThroughputParameters(
         'ma_url' => $np->opts->{'u'},
@@ -105,6 +105,6 @@ sub build_check_parameters {
         'timeout' => $np->opts->{'timeout'},
         'protocol' => $np->opts->{'p'},
     );
-}
+};
 
 1;

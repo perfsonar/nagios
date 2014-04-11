@@ -25,7 +25,7 @@ extends 'perfSONAR_PS::ServiceChecks::Commands::NagiosCmd';
 
 has 'event_type' => (is => 'rw', isa => 'Str');
 
-sub build_plugin {
+override 'build_plugin' => sub {
     my $self = shift;
     
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
@@ -58,14 +58,14 @@ sub build_plugin {
                  help => "threshold of " . $self->metric_name . " (" . $self->units . ") that leads to CRITICAL status.",
                  required => 1 );
     return $np;
-}
+};
 
-sub build_check {
+override 'build_check' => sub {
     my ($self, $np) = @_;
     return new perfSONAR_PS::ServiceChecks::SimpleEventTypeCheck(event_type => $self->event_type);
-}
+};
 
-sub build_check_parameters {
+override 'build_check_parameters' => sub {
     my ($self, $np) = @_;
     return new perfSONAR_PS::ServiceChecks::Parameters::CheckParameters(
         'ma_url' => $np->opts->{'u'},
@@ -75,6 +75,6 @@ sub build_check_parameters {
         'bidirectional' => $np->opts->{'b'},
         'timeout' => $np->opts->{'timeout'}
     );
-}
+};
 
 1;

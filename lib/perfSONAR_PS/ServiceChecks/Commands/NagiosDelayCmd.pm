@@ -33,7 +33,7 @@ use constant DELAY_STRING => {
     'p95_delay' => '95th percentile of delay',
 };
 
-sub build_plugin {
+override 'build_plugin' => sub {
     my $self = shift;
     
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
@@ -70,14 +70,14 @@ sub build_plugin {
                  required => 1 );
 
     return $np;
-}
+};
 
-sub build_check {
+override 'build_check' => sub {
     my ($self, $np) = @_;
     return new perfSONAR_PS::ServiceChecks::DelayCheck();
-}
+};
 
-sub build_check_parameters {
+override 'build_check_parameters' => sub {
     my ($self, $np) = @_;
     #set metric
     my $metric = DELAY_FIELD;
@@ -99,6 +99,6 @@ sub build_check_parameters {
         'timeout' => $np->opts->{'timeout'},
         'metric' => $metric,
     );
-}
+};
 
 1;
