@@ -8,6 +8,19 @@ use perfSONAR_PS::ServiceChecks::Parameters::LatencyParameters;
 
 our $VERSION = 3.4;
 
+=head1 NAME
+
+perfSONAR_PS::ServiceChecks::Commands::NagiosOwdelayCmd
+
+=head1 DESCRIPTION
+
+A nagios command for analyzing one-way delay and loss data. It works with both MAs 
+implementing the REST API and older MAs implementing the SOAP interface. It supports loss
+only for historical purposes. Also, for older SOAP MAs only the min and max quantiles
+will match data as the SOAP interface never implemented any of the other stats.
+
+=cut
+
 extends 'perfSONAR_PS::ServiceChecks::Commands::NagiosCmd';
 
 use constant DELAY_LABEL => 'ms';

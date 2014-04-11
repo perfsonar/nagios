@@ -8,6 +8,18 @@ use perfSONAR_PS::ServiceChecks::Parameters::LatencyParameters;
 
 our $VERSION = 3.4;
 
+=head1 NAME
+
+perfSONAR_PS::ServiceChecks::Commands::NagiosDelayCmd
+
+=head1 DESCRIPTION
+
+A nagios command for analyzing delay (aka round-trip time) returned by tools such as ping.
+Currently only works with MAs implementing the MA REST API. It does NOT work with older 
+MAs such a PinGER running the SOAP interface
+
+=cut
+
 extends 'perfSONAR_PS::ServiceChecks::Commands::NagiosCmd';
 
 use constant DELAY_FIELD => 'min_delay';

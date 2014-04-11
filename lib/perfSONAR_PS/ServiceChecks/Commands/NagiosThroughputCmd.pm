@@ -10,6 +10,17 @@ our $VERSION = 3.4;
 
 extends 'perfSONAR_PS::ServiceChecks::Commands::NagiosCmd';
 
+=head1 NAME
+
+perfSONAR_PS::ServiceChecks::Commands::NagiosThroughputCmd
+
+=head1 DESCRIPTION
+
+A nagios command for analyzing throughput data. It works with both MAs implementing the 
+REST API and older MAs implementing the SOAP interface.
+
+=cut
+
 use constant DEFAULT_MEMD_ADDR => '127.0.0.1:11211';
 use constant DEFAULT_MEMD_EXP => 300;
 use constant DEFAULT_MEMD_COMPRESS_THRESH => 1000000;

@@ -6,7 +6,20 @@ use Statistics::Descriptive;
 
 our $VERSION = 3.4;
 
-has 'nagios_name' => (is => 'rw', isa => 'Str');
+=head1 NAME
+
+perfSONAR_PS::ServiceChecks::Commands::NagiosCmd
+
+=head1 DESCRIPTION
+
+Base class for writing a Nagios command. Provides hooks for defining command-line 
+parameters, building class to perform the check and parsing the results. This class
+is abstract and should never be instantiated directly. Its main function 'run' compares
+thresholds on an average value calculated from a series of numbers.
+
+=cut
+
+has 'nagios_name' => (is => 'rw', isa => 'Str'); 
 has 'metric_name' => (is => 'rw', isa => 'Str', default => sub{ 'metric' });
 has 'units' => (is => 'rw', isa => 'Str', default => sub{ '' });
 has 'units_long_name' => (is => 'rw', isa => 'Str|Undef');
@@ -15,18 +28,40 @@ has 'metric_scale' => (is => 'rw', isa => 'Num', default => sub { 1 });
 has 'timeout' => (is => 'rw', isa => 'Int', default => sub { 60 });
 has 'default_digits' => (is => 'rw', isa => 'Int', default => sub { 3 });
 
+=head2 build_plugin()
+
+Returns a Nagios::Plugin. Subclasses should construct an initial Nagios::Plugin
+in this class with the desired command-line options.
+=cut
 sub build_plugin {
     die "build_plugin must be overridden"
 }
 
+=head2 build_check($np)
+
+Given the Nagios::Plugin object created by build_plugin, this method creates the subclass 
+of perfSONAR_PS::ServiceChecks::Check that will be used to perform the actual check
+=cut
 sub build_check {
     die "build_check must be overridden"
 }
 
+=head2 build_check_parameters($np)
+
+Given the Nagios::Plugin object created by build_plugin, this method creates the subclass 
+of perfSONAR_PS::ServiceChecks::Parameters::CheckParamaters that will be passed to the 
+object created by build_check()
+=cut
 sub build_check_parameters {
     die "build_check_parameters must be overridden"
 }
 
+=head2 run($np)
+
+The main logic that builds, runs and analyzes the check results. It compares the given
+thresholds to the average of a Statistics::Descriptive class returned by a 
+perfSONAR_PS::ServiceChecks::Check->doCheck() call.
+=cut
 sub run{
     my $self = shift;
     

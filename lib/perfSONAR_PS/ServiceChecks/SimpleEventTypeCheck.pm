@@ -7,6 +7,18 @@ use perfSONAR_PS::Client::Esmond::ApiFilters;
 
 our $VERSION = 3.4;
 
+=head1 NAME
+
+perfSONAR_PS::ServiceChecks::SimpleEventTypeCheck
+
+=head1 DESCRIPTION
+
+A check that calls the REST API and retrieves data from a given event type. This type of
+check is very useful for the general case where a single numeric event type needs to be
+retrieved and an average of the value compared against given thresholds.
+
+=cut
+
 extends 'perfSONAR_PS::ServiceChecks::Check';
 
 has 'event_type' => (is => 'rw', isa => 'Str');

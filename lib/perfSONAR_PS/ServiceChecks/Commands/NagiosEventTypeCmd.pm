@@ -8,6 +8,19 @@ use perfSONAR_PS::ServiceChecks::Parameters::CheckParameters;
 
 our $VERSION = 3.4;
 
+=head1 NAME
+
+perfSONAR_PS::ServiceChecks::Commands::NagiosEventTypeCmd
+
+=head1 DESCRIPTION
+
+A generic nagios command for grabbing numeric data of a given event type from an MA 
+implementing the REST API. A script should instantiate this if they simply want to
+grab and get the average of a single event type containing numeric data with simple
+source, destination and time-range filters.
+
+=cut
+
 extends 'perfSONAR_PS::ServiceChecks::Commands::NagiosCmd';
 
 has 'event_type' => (is => 'rw', isa => 'Str');

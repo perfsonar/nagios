@@ -10,6 +10,18 @@ our $VERSION = 3.4;
 
 extends 'perfSONAR_PS::ServiceChecks::Commands::NagiosCmd';
 
+=head1 NAME
+
+perfSONAR_PS::ServiceChecks::Commands::NagiosTracerouteCmd
+
+=head1 DESCRIPTION
+
+A nagios command for analyzing the unique number of packet traces returned by traceroute
+or tracepath. It works with both MAs implementing the REST API and older MAs implementing 
+the SOAP interface.
+
+=cut
+
 sub build_plugin {
     my $self = shift;
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,

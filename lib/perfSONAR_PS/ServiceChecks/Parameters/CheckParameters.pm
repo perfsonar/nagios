@@ -2,6 +2,18 @@ package perfSONAR_PS::ServiceChecks::Parameters::CheckParameters;
 
 use Moose;
 
+=head1 NAME
+
+perfSONAR_PS::ServiceChecks::Parameters::CheckParameters
+
+=head1 DESCRIPTION
+
+A base class with standard parameters for an MA check such as URL, source, destination
+and other. This may be instantiated directly or extended if additional parameters are 
+required for a check.
+
+=cut
+
 has 'ma_url' => (is => 'rw', isa => 'Str');
 has 'source' => (is => 'rw', isa => 'Str|Undef');
 has 'destination' => (is => 'rw', isa => 'Str|Undef');
