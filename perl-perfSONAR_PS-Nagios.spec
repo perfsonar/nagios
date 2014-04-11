@@ -1,10 +1,10 @@
 %define install_base /opt/perfsonar_ps/nagios
 
-%define relnum 2 
+%define relnum 1 
 %define disttag pSPS
 
 Name:			perl-perfSONAR_PS-Nagios
-Version:		3.3.2
+Version:		3.4
 Release:		%{relnum}.%{disttag}
 Summary:		perfSONAR_PS Nagios Plugins
 License:		Distributable, see LICENSE
