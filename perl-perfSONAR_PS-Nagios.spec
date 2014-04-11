@@ -67,6 +67,7 @@ chkconfig memcached on
 %doc %{install_base}/doc/*
 %config %{install_base}/etc/*
 %attr(0755,perfsonar,perfsonar) %{install_base}/bin/*
+%attr(0755,perfsonar,perfsonar) %{install_base}/deprecated-bin/*
 %attr(0755,perfsonar,perfsonar) %{install_base}/lib/*
 %{install_base}/dependencies
 
