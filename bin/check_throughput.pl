@@ -9,6 +9,7 @@ use perfSONAR_PS::ServiceChecks::Commands::NagiosThroughputCmd;
 
 my $cmd = new perfSONAR_PS::ServiceChecks::Commands::NagiosThroughputCmd(
     nagios_name => 'PS_CHECK_THROUGHPUT',
+    metric_name => 'throughput',
     units => 'Gbps',
     metric_scale => 1.0/10e8
 );
