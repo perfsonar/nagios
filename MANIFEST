@@ -44,6 +44,7 @@ lib/perfSONAR_PS/Client/Esmond/ApiConnect.pm
 lib/perfSONAR_PS/Client/Esmond/ApiFilters.pm
 lib/perfSONAR_PS/Client/Esmond/BaseDataNode.pm
 lib/perfSONAR_PS/Client/Esmond/BaseNode.pm
+lib/perfSONAR_PS/Client/Esmond/DataConnect.pm
 lib/perfSONAR_PS/Client/Esmond/DataPayload.pm
 lib/perfSONAR_PS/Client/Esmond/EventType.pm
 lib/perfSONAR_PS/Client/Esmond/Metadata.pm
