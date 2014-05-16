@@ -26,13 +26,14 @@ override 'do_check' => sub {
     my $bidir = $params->bidirectional;
     my $protocol = $params->protocol;
     my $timeout = $params->timeout;
+    my $ip_type = $params->ip_type;
     
     my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, alarm_disabled => 1 } );
     my $stats = Statistics::Descriptive::Sparse->new();
     my %endpoint_addrs = ();
     $timeout = 60 if(!$timeout);
-    $endpoint_addrs{"src"} = $self->get_ip_and_host($src) if($src);
-    $endpoint_addrs{"dst"} = $self->get_ip_and_host($dst) if($dst);
+    $endpoint_addrs{"src"} = $self->get_ip_and_host($src, $ip_type) if($src);
+    $endpoint_addrs{"dst"} = $self->get_ip_and_host($dst, $ip_type) if($dst);
     my $memd_key = 'check_throughput:' . $ma_url . ':' . $time_int;
     
     my $result = q{};
@@ -207,7 +208,7 @@ sub get_endpoint_type {
 }
 
 sub get_ip_and_host {
-    my ( $self, $endpoint ) = @_;
+    my ( $self, $endpoint, $ip_type ) = @_;
     
     my %result = ();
     
@@ -225,11 +226,18 @@ sub get_ip_and_host {
         $result{'hostname'} = $hostname if($hostname);
     }else{
         #if not ipv4 or ipv6 then assume a hostname
-        $result{'hostname'} = $endpoint;
         my @addresses = resolve_address($endpoint);
+        my $count = 0;
         for(my $i =0; $i < @addresses; $i++){
-            $result{"ip.$i"} = $self->normalize_ipv6($addresses[$i]) unless($addresses[$i] eq $result{'hostname'});
+            if( is_ipv4($addresses[$i]) && $ip_type !~ 'v4'){
+                next;
+            }elsif( is_ipv6($addresses[$i]) && $ip_type !~ 'v6'){
+                next;
+            }
+            $result{"ip.$count"} = $self->normalize_ipv6($addresses[$i]) unless($addresses[$i] eq $endpoint);
+            $count++;
         }
+        $result{'hostname'} = $endpoint unless($count == 0);
     }
     
     return \%result;

@@ -26,10 +26,10 @@ has 'event_type' => (is => 'rw', isa => 'Str');
 override 'do_check' => sub {
     my ($self, $params) = @_;
     my $stats = Statistics::Descriptive::Sparse->new();
-    my $res = $self->call_ma($params->ma_url, $params->source, $params->destination, $params->time_range, $params->timeout, $stats);
+    my $res = $self->call_ma($params->ma_url, $params->source, $params->destination, $params->time_range, $params->timeout, $params->ip_type, $stats);
     return ($res, $stats) if($res);
     if($params->bidirectional){
-        $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $params->timeout, $stats);
+        $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $params->timeout, $params->ip_type, $stats);
         return ($res, $stats) if($res);
     }
     return ('', $stats);
@@ -37,12 +37,17 @@ override 'do_check' => sub {
 
 sub call_ma {
     #send request
-    my ($self, $ma_url, $src, $dst, $time_int, $timeout, $stats) = @_;
+    my ($self, $ma_url, $src, $dst, $time_int, $timeout, $ip_type, $stats) = @_;
     
     my $filters = new perfSONAR_PS::Client::Esmond::ApiFilters(timeout => $timeout);
     $filters->source($src) if($src);
     $filters->destination($dst) if($dst);
     $filters->time_range($time_int) if($time_int);
+    if($ip_type eq 'v4'){
+        $filters->dns_match_only_v4();
+    }elsif($ip_type eq 'v6'){
+        $filters->dns_match_only_v6();
+    }
     $filters->event_type($self->event_type);
     my $client = new perfSONAR_PS::Client::Esmond::ApiConnect(
         url => $ma_url,

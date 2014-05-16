@@ -21,10 +21,10 @@ use constant STAT_MAP => {
 override 'do_check' => sub {
     my ($self, $params) = @_;
     my $stats = Statistics::Descriptive::Sparse->new();
-    my $res = $self->call_ma($params->ma_url, $params->source, $params->destination, $params->time_range, $params->metric, $params->as_percentage, $params->timeout, $stats);
+    my $res = $self->call_ma($params->ma_url, $params->source, $params->destination, $params->time_range, $params->metric, $params->as_percentage, $params->timeout, $params->ip_type, $stats);
     return ($res, $stats) if($res);
     if($params->bidirectional){
-        $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $params->metric, $params->as_percentage, $params->timeout, $stats);
+        $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $params->metric, $params->as_percentage, $params->timeout, $params->ip_type, $stats);
         return ($res, $stats) if($res);
     }
     return ('', $stats);
@@ -32,13 +32,18 @@ override 'do_check' => sub {
 
 sub call_ma {
     #send request
-    my ($self, $ma_url, $src, $dst, $time_int, $metric, $as_percentage, $timeout, $stats) = @_;
+    my ($self, $ma_url, $src, $dst, $time_int, $metric, $as_percentage, $timeout, $ip_type, $stats) = @_;
     
     my $filters = new perfSONAR_PS::Client::Esmond::ApiFilters(timeout => $timeout);
     my $stat = '';
     $filters->source($src) if($src);
     $filters->destination($dst) if($dst);
     $filters->time_range($time_int) if($time_int);
+    if($ip_type eq 'v4'){
+        $filters->dns_match_only_v4();
+    }elsif($ip_type eq 'v6'){
+        $filters->dns_match_only_v6();
+    }
     if($metric eq 'loss' && $as_percentage){
         $filters->event_type('packet-loss-rate');
     }elsif($metric eq 'loss'){

@@ -15,6 +15,11 @@ override 'do_check' => sub {
     $filters->source($params->source) if($params->source);
     $filters->destination($params->destination) if($params->destination);
     $filters->time_range($params->time_range) if($params->time_range);
+    if($params->ip_type eq 'v4'){
+        $filters->dns_match_only_v4();
+    }elsif($params->ip_type eq 'v6'){
+        $filters->dns_match_only_v6();
+    }
     $filters->event_type('packet-trace');
     my $client = new perfSONAR_PS::Client::Esmond::ApiConnect(
         url => $params->ma_url,

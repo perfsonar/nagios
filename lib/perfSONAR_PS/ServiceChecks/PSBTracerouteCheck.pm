@@ -4,6 +4,7 @@ use Moose;
 use Data::Validate::IP qw(is_ipv4 is_ipv6);
 use Statistics::Descriptive;
 use perfSONAR_PS::Common qw( find findvalue );
+use perfSONAR_PS::Utils::DNS qw( reverse_dns resolve_address);
 use perfSONAR_PS::Client::MA;
 use XML::LibXML;
 use Socket;
@@ -22,12 +23,13 @@ override 'do_check' => sub {
     my $dst = $params->destination;
     my $time_int = $params->time_range;
     my $timeout = $params->timeout;
+    my $ip_type = $params->ip_type;
     my $ma = new perfSONAR_PS::Client::MA( { instance => $ma_url, alarm_disabled => 1 } );
     my $stats = Statistics::Descriptive::Sparse->new();
     
     my %endpoint_addrs = ();
-    $endpoint_addrs{"src"} = $self->get_ip_and_host($src) if($src);
-    $endpoint_addrs{"dst"} = $self->get_ip_and_host($dst) if($dst);
+    $endpoint_addrs{"src"} = $self->get_ip_and_host($src, $ip_type) if($src);
+    $endpoint_addrs{"dst"} = $self->get_ip_and_host($dst, $ip_type) if($dst);
     
     # Define subject
     my $subject = "<trace:subject xmlns:trace=\"http://ggf.org/ns/nmwg/tools/traceroute/2.0\" id=\"subject\">\n";
@@ -161,33 +163,47 @@ sub get_endpoint_type() {
 }
 
 sub get_ip_and_host {
-    my ( $self, $endpoint ) = @_;
+    my ( $self, $endpoint, $ip_type ) = @_;
     
-    my $ip = "";
-    my $hostname = "";
+    my %result = ();
     
     if( is_ipv4($endpoint) ){
-        $ip = $endpoint;
+        my $hostname = '';
+        $result{'ip'} = $endpoint;
         my $tmp_addr = Socket::inet_aton( $endpoint );
         if ( defined $tmp_addr and $tmp_addr ) {
             $hostname = gethostbyaddr( $tmp_addr, Socket::AF_INET );
         }
-        $hostname = $endpoint unless $hostname;
+        $result{'hostname'} = $hostname if($hostname);
     }elsif( is_ipv6($endpoint) ){
-        $ip = $endpoint;
-        #try to lookup v6 record?
-        $hostname = $endpoint;
+        $result{'ip'} = $self->normalize_ipv6($endpoint);
+        my $hostname = reverse_dns($result{'ip'});
+        $result{'hostname'} = $hostname if($hostname);
     }else{
         #if not ipv4 or ipv6 then assume a hostname
-        $hostname = $endpoint;
-        my $packed_ip = gethostbyname( $endpoint );
-        if ( defined $packed_ip and $packed_ip ) {
-            $ip = inet_ntoa( $packed_ip );
+        my @addresses = resolve_address($endpoint);
+        my $count = 0;
+        for(my $i =0; $i < @addresses; $i++){
+            if( is_ipv4($addresses[$i]) && $ip_type !~ 'v4'){
+                next;
+            }elsif( is_ipv6($addresses[$i]) && $ip_type !~ 'v6'){
+                next;
+            }
+            $result{"ip.$count"} = $self->normalize_ipv6($addresses[$i]) unless($addresses[$i] eq $endpoint);
+            $count++;
         }
-        $ip = $endpoint unless $ip;
+        $result{'hostname'} = $endpoint unless($count == 0);
     }
     
-    return { 'ip' => $ip, 'hostname' => $hostname };
+    return \%result;
+}
+
+sub normalize_ipv6 {
+    my ($self, $ipv6) = @_;
+    
+    $ipv6 =~ s/(:0+)+:/::/g;
+    
+    return $ipv6;
 }
 
 sub check_exclude_one_endpoint {

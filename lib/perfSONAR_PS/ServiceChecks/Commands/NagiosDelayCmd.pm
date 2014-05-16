@@ -38,7 +38,7 @@ override 'build_plugin' => sub {
     
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
                               timeout => $self->timeout,
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional --digits <significant-digits> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -t|timeout <timeout> -q|quantile <quantile>" );
+                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional --digits <significant-digits> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -t|timeout <timeout> -q|quantile <quantile> -4 -6" );
 
     #get arguments
     $np->add_arg(spec => "u|url=s",
@@ -68,6 +68,12 @@ override 'build_plugin' => sub {
     $np->add_arg(spec => "c|critical=s",
                  help => "threshold of delay (" . $self->units . ") that leads to CRITICAL status.",
                  required => 1 );
+    $np->add_arg(spec => "4",
+                 help => "Only analyze IPv4 tests",
+                 required => 0 );
+    $np->add_arg(spec => "6",
+                 help => "Only analyze IPv6 tests",
+                 required => 0 );
 
     return $np;
 };
@@ -89,6 +95,13 @@ override 'build_check_parameters' => sub {
          $np->nagios_die("Unknown metric " . $metric);
     }
     $self->metric_name($metric_string);
+    #set ipv4 and ipv6 parameters
+    my $ip_type = 'v4v6';
+    if($np->opts->{'4'}){
+        $ip_type = 'v4';
+    }elsif($np->opts->{'6'}){
+        $ip_type = 'v6';
+    }
     
     return new perfSONAR_PS::ServiceChecks::Parameters::LatencyParameters(
         'ma_url' => $np->opts->{'u'},
@@ -98,6 +111,7 @@ override 'build_check_parameters' => sub {
         'bidirectional' => $np->opts->{'b'},
         'timeout' => $np->opts->{'timeout'},
         'metric' => $metric,
+        'ip_type' => $ip_type,
     );
 };
 

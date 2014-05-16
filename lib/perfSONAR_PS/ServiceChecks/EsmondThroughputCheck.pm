@@ -12,10 +12,10 @@ extends 'perfSONAR_PS::ServiceChecks::Check';
 override 'do_check' => sub {
     my ($self, $params) = @_;
     my $stats = Statistics::Descriptive::Sparse->new();
-    my $res = $self->call_ma($params->ma_url, $params->source, $params->destination, $params->time_range, $params->protocol, $params->timeout, $stats);
+    my $res = $self->call_ma($params->ma_url, $params->source, $params->destination, $params->time_range, $params->protocol, $params->timeout,  $params->ip_type, $stats);
     return ($res, $stats) if($res);
     if($params->bidirectional){
-        $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $params->protocol, $params->timeout, $stats);
+        $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $params->protocol, $params->timeout, $params->ip_type, $stats);
         return ($res, $stats) if($res);
     }
     return ('', $stats);
@@ -23,12 +23,17 @@ override 'do_check' => sub {
 
 sub call_ma {
     #send request
-    my ($self, $ma_url, $src, $dst, $time_int, $protocol, $timeout, $stats) = @_;
+    my ($self, $ma_url, $src, $dst, $time_int, $protocol, $timeout, $ip_type, $stats) = @_;
     
     my $filters = new perfSONAR_PS::Client::Esmond::ApiFilters(timeout => $timeout);
     $filters->source($src) if($src);
     $filters->destination($dst) if($dst);
     $filters->metadata_filters->{'ip-transport-protocol'} = $protocol if($protocol);
+    if($ip_type eq 'v4'){
+        $filters->dns_match_only_v4();
+    }elsif($ip_type eq 'v6'){
+        $filters->dns_match_only_v6();
+    }
     $filters->time_range($time_int) if($time_int);
     $filters->event_type('throughput');
     my $client = new perfSONAR_PS::Client::Esmond::ApiConnect(

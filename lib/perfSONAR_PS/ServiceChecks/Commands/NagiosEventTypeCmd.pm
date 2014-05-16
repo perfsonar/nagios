@@ -30,7 +30,7 @@ override 'build_plugin' => sub {
     
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
                                   timeout => $self->timeout,
-                                  usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional --digits <significant-digits> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -t|timeout <timeout>" );
+                                  usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional --digits <significant-digits> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -t|timeout <timeout> -4 -6" );
 
     #get arguments
     $np->add_arg(spec => "u|url=s",
@@ -57,6 +57,13 @@ override 'build_plugin' => sub {
     $np->add_arg(spec => "c|critical=s",
                  help => "threshold of " . $self->metric_name . " (" . $self->units . ") that leads to CRITICAL status.",
                  required => 1 );
+    $np->add_arg(spec => "4",
+                 help => "Only analyze IPv4 tests",
+                 required => 0 );
+    $np->add_arg(spec => "6",
+                 help => "Only analyze IPv6 tests",
+                 required => 0 );
+                 
     return $np;
 };
 
@@ -67,13 +74,23 @@ override 'build_check' => sub {
 
 override 'build_check_parameters' => sub {
     my ($self, $np) = @_;
+    
+    #set ipv4 and ipv6 parameters
+    my $ip_type = 'v4v6';
+    if($np->opts->{'4'}){
+        $ip_type = 'v4';
+    }elsif($np->opts->{'6'}){
+        $ip_type = 'v6';
+    }
+    
     return new perfSONAR_PS::ServiceChecks::Parameters::CheckParameters(
         'ma_url' => $np->opts->{'u'},
         'source' => $np->opts->{'s'},
         'destination' => $np->opts->{'d'},
         'time_range' => $np->opts->{'r'},
         'bidirectional' => $np->opts->{'b'},
-        'timeout' => $np->opts->{'timeout'}
+        'timeout' => $np->opts->{'timeout'},
+        'ip_type' => $ip_type,
     );
 };
 

@@ -29,7 +29,7 @@ override 'build_plugin' => sub {
     my $self = shift;
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
                               timeout => $self->timeout,
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -v|--verbose -p|--protocol <protocol> --t|timeout <timeout> --digits <significant-digits> -m|memcached <server> -e|memcachedexp <expiretime>" );
+                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -v|--verbose -p|--protocol <protocol> --t|timeout <timeout> --digits <significant-digits> -m|memcached <server> -e|memcachedexp <expiretime> -4 -6" );
 
     #get arguments
     $np->add_arg(spec => "u|url=s",
@@ -65,6 +65,12 @@ override 'build_plugin' => sub {
     $np->add_arg(spec => "e|memcachedexp=s",
                  help => "Time when you want memcached data to expire in seconds. Defaults to lesser of 5 minutes and -r option if not set.",
                  required => 0 );
+    $np->add_arg(spec => "4",
+                 help => "Only analyze IPv4 tests",
+                 required => 0 );
+    $np->add_arg(spec => "6",
+                 help => "Only analyze IPv6 tests",
+                 required => 0 );
 
     return $np;
 };
@@ -96,6 +102,15 @@ override 'build_check' => sub {
 
 override 'build_check_parameters' => sub {
     my ($self, $np) = @_;
+    
+    #set ipv4 and ipv6 parameters
+    my $ip_type = 'v4v6';
+    if($np->opts->{'4'}){
+        $ip_type = 'v4';
+    }elsif($np->opts->{'6'}){
+        $ip_type = 'v6';
+    }
+    
     return new perfSONAR_PS::ServiceChecks::Parameters::ThroughputParameters(
         'ma_url' => $np->opts->{'u'},
         'source' => $np->opts->{'s'},
@@ -104,6 +119,7 @@ override 'build_check_parameters' => sub {
         'bidirectional' => $np->opts->{'b'},
         'timeout' => $np->opts->{'timeout'},
         'protocol' => $np->opts->{'p'},
+        'ip_type' => $ip_type,
     );
 };
 
