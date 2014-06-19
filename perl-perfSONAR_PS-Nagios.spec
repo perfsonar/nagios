@@ -1,6 +1,6 @@
 %define install_base /opt/perfsonar_ps/nagios
 
-%define relnum 1 
+%define relnum 2 
 %define disttag pSPS
 
 Name:			perl-perfSONAR_PS-Nagios
@@ -72,5 +72,9 @@ chkconfig memcached on
 %{install_base}/dependencies
 
 %changelog
+* Thu Jun 18 2014 andy@es.net 3.4-2
+- Added support for new MA
+- Added -4 and -6 options
+
 * Fri Jan 11 2013 asides@es.net 3.3-1
 - 3.3 beta release
