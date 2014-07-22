@@ -10,7 +10,9 @@ Exporter
 FindBin
 Getopt::Long
 HTTP::Request
+HTTP::Response
 IO::File
+IO::Socket::SSL
 JSON
 LWP
 LWP::Simple
