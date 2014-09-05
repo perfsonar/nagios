@@ -1,6 +1,6 @@
 package perfSONAR_PS::ServiceChecks::PSBThroughputCheck;
 
-use Moose;
+use Mouse;
 
 our $VERSION = 3.4;
 
@@ -319,5 +319,7 @@ sub record_endpoints {
     $mdIdMap->{$mdId} = $dst.'->'.$src;
     $mdEndpointMap->{$src.'->'.$dst} = HAS_METADATA;
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;

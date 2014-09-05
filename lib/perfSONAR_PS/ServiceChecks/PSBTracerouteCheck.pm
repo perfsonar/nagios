@@ -1,6 +1,6 @@
 package perfSONAR_PS::ServiceChecks::PSBTracerouteCheck;
 
-use Moose;
+use Mouse;
 use Data::Validate::IP qw(is_ipv4 is_ipv6);
 use Statistics::Descriptive;
 use perfSONAR_PS::Common qw( find findvalue );
@@ -275,5 +275,7 @@ sub check_exclude_test() {
         $excludedTests->{"$mdId"} = 1;
     }
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;

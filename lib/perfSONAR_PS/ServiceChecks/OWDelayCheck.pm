@@ -1,13 +1,13 @@
 package perfSONAR_PS::ServiceChecks::OWDelayCheck;
 
-use Moose;
+use Mouse;
 
 our $VERSION = 3.4;
+use constant ENABLE_PSB => 1;
 
-extends 'perfSONAR_PS::ServiceChecks::Check';
-
-use perfSONAR_PS::ServiceChecks::PSBOWDelayCheck;
+use if ENABLE_PSB, 'perfSONAR_PS::ServiceChecks::PSBOWDelayCheck';
 use perfSONAR_PS::ServiceChecks::EsmondOWDelayCheck;
+extends 'perfSONAR_PS::ServiceChecks::Check';
 
 override 'do_check' => sub {
     my ($self, $params) = @_;
@@ -21,5 +21,7 @@ override 'do_check' => sub {
     
     return $check->do_check($params);
 };
+
+__PACKAGE__->meta->make_immutable;
 
 1;

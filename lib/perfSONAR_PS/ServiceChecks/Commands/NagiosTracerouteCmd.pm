@@ -1,6 +1,6 @@
 package perfSONAR_PS::ServiceChecks::Commands::NagiosTracerouteCmd;
 
-use Moose;
+use Mouse;
 use Nagios::Plugin;
 use Statistics::Descriptive;
 use perfSONAR_PS::ServiceChecks::TracerouteCheck;
@@ -81,5 +81,7 @@ override 'build_check_parameters' => sub {
         'ip_type' => $ip_type,
     );
 };
+
+__PACKAGE__->meta->make_immutable;
 
 1;

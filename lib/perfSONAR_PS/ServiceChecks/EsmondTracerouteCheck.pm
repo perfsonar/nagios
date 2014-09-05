@@ -1,6 +1,6 @@
 package perfSONAR_PS::ServiceChecks::EsmondTracerouteCheck;
 
-use Moose;
+use Mouse;
 use perfSONAR_PS::Client::Esmond::ApiConnect;
 use perfSONAR_PS::Client::Esmond::ApiFilters;
 
@@ -51,5 +51,7 @@ override 'do_check' => sub {
     
     return ('', $stats);
 };
+
+__PACKAGE__->meta->make_immutable;
 
 1;

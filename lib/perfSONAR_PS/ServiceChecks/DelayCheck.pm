@@ -1,6 +1,6 @@
 package perfSONAR_PS::ServiceChecks::DelayCheck;
 
-use Moose;
+use Mouse;
 use perfSONAR_PS::Client::Esmond::ApiConnect;
 use perfSONAR_PS::Client::Esmond::ApiFilters;
 
@@ -83,5 +83,7 @@ sub call_ma {
     
     return '';  
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;

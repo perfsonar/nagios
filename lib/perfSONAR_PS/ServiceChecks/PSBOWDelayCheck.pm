@@ -1,6 +1,6 @@
 package perfSONAR_PS::ServiceChecks::PSBOWDelayCheck;
 
-use Moose;
+use Mouse;
 use Data::Validate::IP qw(is_ipv4 is_ipv6);
 use Socket;
 use Statistics::Descriptive;
@@ -335,5 +335,7 @@ sub record_endpoints {
     $mdIdMap->{$mdId} = $dst.'->'.$src;
     $mdEndpointMap->{$src.'->'.$dst} = HAS_METADATA;
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;

@@ -1,6 +1,6 @@
 package perfSONAR_PS::ServiceChecks::Commands::NagiosCmd;
 
-use Moose;
+use Mouse;
 use Nagios::Plugin;
 use Statistics::Descriptive;
 
@@ -128,5 +128,7 @@ sub run{
     }
     $np->nagios_exit($code, $msg);
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;

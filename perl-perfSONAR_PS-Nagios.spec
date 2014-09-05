@@ -1,6 +1,6 @@
 %define install_base /opt/perfsonar_ps/nagios
 
-%define relnum 2 
+%define relnum 3 
 %define disttag pSPS
 
 Name:			perl-perfSONAR_PS-Nagios
@@ -31,6 +31,7 @@ Requires:		perl(Statistics::Descriptive)
 Requires:		perl(Time::HiRes)
 Requires:		perl(XML::LibXML)
 Requires:		perl(Cache::Memcached)
+Requires:               perl(Mouse)
 Requires:		memcached
 Requires:		chkconfig
 Requires:		coreutils

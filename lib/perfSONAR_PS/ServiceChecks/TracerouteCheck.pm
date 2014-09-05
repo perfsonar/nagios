@@ -1,12 +1,13 @@
 package perfSONAR_PS::ServiceChecks::TracerouteCheck;
 
-use Moose;
+use Mouse;
 
 our $VERSION = 3.4;
 
 extends 'perfSONAR_PS::ServiceChecks::Check';
+use constant ENABLE_PSB => 1;
 
-use perfSONAR_PS::ServiceChecks::PSBTracerouteCheck;
+use if ENABLE_PSB, ' perfSONAR_PS::ServiceChecks::PSBTracerouteCheck';
 use perfSONAR_PS::ServiceChecks::EsmondTracerouteCheck;
 
 override 'do_check' => sub {
@@ -21,5 +22,7 @@ override 'do_check' => sub {
     
     return $check->do_check($params);
 };
+
+__PACKAGE__->meta->make_immutable;
 
 1;

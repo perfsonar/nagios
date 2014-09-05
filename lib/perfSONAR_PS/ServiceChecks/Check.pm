@@ -1,7 +1,7 @@
 package perfSONAR_PS::ServiceChecks::Check;
 
-use Moose;
-use Moose::Util::TypeConstraints;
+use Mouse;
+use Mouse::Util::TypeConstraints;
 use Cache::Memcached;
 
 =head1 NAME
@@ -28,5 +28,7 @@ sub do_check {
     #return ($result_msg, $stats);
     die "Must override do_check";
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;
