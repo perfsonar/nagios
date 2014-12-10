@@ -32,6 +32,7 @@ Requires:		perl(Time::HiRes)
 Requires:		perl(XML::LibXML)
 Requires:		perl(Cache::Memcached)
 Requires:               perl(Mouse)
+Requires:               perl(JSON::XS)
 Requires:		memcached
 Requires:		chkconfig
 Requires:		coreutils
