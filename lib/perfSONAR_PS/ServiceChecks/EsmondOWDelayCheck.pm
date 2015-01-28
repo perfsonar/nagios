@@ -21,18 +21,76 @@ use constant STAT_MAP => {
 override 'do_check' => sub {
     my ($self, $params) = @_;
     my $stats = Statistics::Descriptive::Sparse->new();
-    my $res = $self->call_ma($params->ma_url, $params->source, $params->destination, $params->time_range, $params->metric, $params->as_percentage, $params->timeout, $params->ip_type, $stats);
+    my @fwd_metadata = ();
+    my @rev_metadata = ();
+    my $res = $self->call_ma($params->ma_url, $params->source, $params->destination, $params->time_range, $params->metric, $params->as_percentage, $params->timeout, $params->ip_type, 1000, $stats, \@fwd_metadata);
+    my $extra_stats = {};
     return ($res, $stats) if($res);
     if($params->bidirectional){
-        $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $params->metric, $params->as_percentage, $params->timeout, $params->ip_type, $stats);
+        $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $params->metric, $params->as_percentage, $params->timeout, $params->ip_type, 1000, $stats, \@rev_metadata);
         return ($res, $stats) if($res);
     }
-    return ('', $stats);
+    
+    if($params->compare){
+        #setup extra_stats
+        $extra_stats->{'PathCompare_MinRelevantDelay'} = $params->compare_mindelay;
+        $extra_stats->{'PathCompare_MinRelevantDelayDelta'} = $params->compare_mindelaydelta;
+        $extra_stats->{'PathCompare_MaxDelayDeltaFactor'} = sprintf("%.2f", $params->compare_maxdelaydeltafactor * 100) . "%";
+        
+        #collect forward and reverse data
+        my $fwd_stats = Statistics::Descriptive::Sparse->new();
+        my $rev_stats = Statistics::Descriptive::Sparse->new();
+        $res = $self->get_compare_data(\@fwd_metadata, STAT_MAP->{$params->compare_quantile}, $fwd_stats);
+        return ('', $stats, $extra_stats) if($res); #quietly exit if this fails since not primary stat
+        if(@rev_metadata > 0){
+            $res = $self->get_compare_data(\@rev_metadata, STAT_MAP->{$params->compare_quantile}, $rev_stats);
+            return ('', $stats, $extra_stats) if($res); #quietly exit if this fails since not primary stat
+        }else{
+            my $metric = $params->compare_quantile . '_delay';
+            $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $metric, $params->as_percentage, $params->timeout, $params->ip_type, 1, $rev_stats, \@rev_metadata);
+            return ('', $stats, $extra_stats) if($res); #quietly exit if this fails since not primary stat
+        }
+        
+        #now compare
+        my $fwd_delay = $fwd_stats->mean();
+        my $rev_delay = $rev_stats->mean();
+        $extra_stats->{'PathCompare_ForwardDelay'} = sprintf("%.2f", $fwd_delay);
+        $extra_stats->{'PathCompare_ReverseDelay'} = sprintf("%.2f", $rev_delay);
+        #make sure its above the min delay that we care about
+        if($fwd_delay <= $params->compare_mindelay && $rev_delay <= $params->compare_mindelay){
+            return ('', $stats, $extra_stats);
+        }
+        
+        #calculate the diff and the factor 
+        my $delay_delta = 0;
+        my $delay_delta_factor = 0;
+        if($fwd_delay > $rev_delay){
+            $delay_delta = $fwd_delay - $rev_delay;
+            $delay_delta_factor = $fwd_delay/$rev_delay;
+        }else{
+            $delay_delta = $rev_delay - $fwd_delay;
+            $delay_delta_factor = $rev_delay/$fwd_delay;
+        }
+        $delay_delta_factor -= 1;
+        $extra_stats->{'PathCompare_DelayDelta'} = sprintf("%.2f", $delay_delta);
+        $extra_stats->{'PathCompare_DelayFactor'} = sprintf("%.2f", $delay_delta_factor * 100) . "%";
+        
+        #make sure diff is high enough that we care about it
+        if($delay_delta <= $params->compare_mindelaydelta){
+            return ('', $stats, $extra_stats);
+        }
+        
+        #finally compare the factor
+        if($delay_delta_factor > $params->compare_maxdelaydeltafactor){
+            return ('', $stats, $extra_stats, 6, "There is a " . sprintf("%.2f", $delay_delta_factor * 100) . "% difference between forward and reverse one-way delay.");
+        }
+    }
+    return ('', $stats, $extra_stats);
 };
 
 sub call_ma {
     #send request
-    my ($self, $ma_url, $src, $dst, $time_int, $metric, $as_percentage, $timeout, $ip_type, $stats) = @_;
+    my ($self, $ma_url, $src, $dst, $time_int, $metric, $as_percentage, $timeout, $ip_type, $units, $stats, $md) = @_;
     
     my $filters = new perfSONAR_PS::Client::Esmond::ApiFilters(timeout => $timeout);
     my $stat = '';
@@ -62,9 +120,9 @@ sub call_ma {
     );
     
     #parse results
-    my $md = $client->get_metadata();
+    my $tmpmd = $client->get_metadata();
     return $client->error if($client->error);
-    unless(scalar(@{$md}) > 0){
+    unless(scalar(@{$tmpmd}) > 0){
         my $msg = 'Unable to find any tests with data in the given time range';
         $msg .= " where " if($src || $dst);
         $msg .= "source is $src" if($src);
@@ -72,6 +130,7 @@ sub call_ma {
         $msg .= "destination is $dst" if($dst);
         return $msg;
     }
+    push @{$md}, @{$tmpmd};
     foreach my $m(@{$md}){
         my $et = $m->get_event_type($filters->event_type());
         if($stat){
@@ -82,7 +141,7 @@ sub call_ma {
             foreach my $d(@{$data}){
                 if($d->val && ref($d->val) eq 'HASH' && exists $d->val->{$stat}){
                     #convert to seconds for higher level check
-                    $stats->add_data($d->val->{$stat}/1000.0);
+                    $stats->add_data($d->val->{$stat}/$units);
                 }
             }
         }else{
@@ -99,6 +158,22 @@ sub call_ma {
     }
     
     return '';  
+}
+
+sub get_compare_data {
+    my ($self, $md, $stat, $stats) = @_;
+    foreach my $m(@{$md}){
+        my $et = $m->get_event_type('histogram-owdelay');
+        my $summ = $et->get_summary('statistics', 0);
+        next unless($summ);
+        my $data = $summ->get_data();
+        return $summ->error if($summ->error);
+        foreach my $d(@{$data}){
+            if($d->val && ref($d->val) eq 'HASH' && exists $d->val->{$stat}){
+                $stats->add_data($d->val->{$stat});
+            }
+        }
+    }
 }
 
 __PACKAGE__->meta->make_immutable;

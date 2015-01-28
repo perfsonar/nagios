@@ -71,9 +71,9 @@ sub run{
     #call client
     my $checker = $self->build_check($np);
     my $parameters = $self->build_check_parameters($np);
-    my ($result, $stats);
+    my ($result, $stats, $extra_code, $extra_msg, $extra_stats);
     eval{
-        ($result, $stats) = $checker->do_check($parameters);
+        ($result, $stats, $extra_stats, $extra_code, $extra_msg) = $checker->do_check($parameters);
     };
     if($@){
         $np->nagios_die("Error with underlying check: " . $@);
@@ -113,7 +113,16 @@ sub run{
             label => 'Standard_Deviation',
             value => $stats->standard_deviation() * $self->metric_scale,
         );
-
+    
+    if($extra_stats){
+        foreach my $stat_label(keys %{$extra_stats}){
+            $np->add_perfdata(
+                label => $stat_label,
+                value => $extra_stats->{$stat_label},
+            );
+        }
+    }
+        
     my $code = $np->check_threshold(
          check => $stats->mean() * $self->metric_scale,
          warning => $np->opts->{'w'},
@@ -126,6 +135,12 @@ sub run{
     }else{
         $msg = "Error analyzing results";
     }
+    
+    if($extra_code && $code eq OK){
+        $code = $extra_code;
+        $msg = $extra_msg;
+    }
+    
     $np->nagios_exit($code, $msg);
 }
 
