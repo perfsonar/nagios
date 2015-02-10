@@ -29,7 +29,7 @@ override 'build_plugin' => sub {
     my $self = shift;
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
                               timeout => $self->timeout,
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -v|--verbose -p|--protocol <protocol> --t|timeout <timeout> --digits <significant-digits> -m|memcached <server> -e|memcachedexp <expiretime> -4 -6" );
+                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> <options>" );
 
     #get arguments
     $np->add_arg(spec => "u|url=s",
