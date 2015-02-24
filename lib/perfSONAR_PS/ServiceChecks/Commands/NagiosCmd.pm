@@ -2,6 +2,7 @@ package perfSONAR_PS::ServiceChecks::Commands::NagiosCmd;
 
 use Mouse;
 use Nagios::Plugin;
+use Nagios::Plugin qw(%STATUS_TEXT);
 use Statistics::Descriptive;
 
 our $VERSION = 3.4;
@@ -141,7 +142,12 @@ sub run{
         $msg = $extra_msg;
     }
     
-    $np->nagios_exit($code, $msg);
+    
+    #Do own output and exit since nagios doesn't allow custom states
+    my $output = $self->nagios_name . ' ' . (exists $STATUS_TEXT{$code} ? $STATUS_TEXT{$code} : 'CUSTOM') . " - $msg";
+    $output .= " | ". $np->all_perfoutput if $np->perfdata && $np->all_perfoutput;
+    print "$output\n";
+    exit $code;
 }
 
 __PACKAGE__->meta->make_immutable;
