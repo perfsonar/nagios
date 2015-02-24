@@ -60,6 +60,10 @@ override 'do_check' => sub {
         if($fwd_delay <= $params->compare_mindelay && $rev_delay <= $params->compare_mindelay){
             return ('', $stats, $extra_stats);
         }
+        unless($fwd_delay && $rev_delay){
+            #avoid divide by 0
+            return ('', $stats, $extra_stats);
+        }
         
         #calculate the diff and the factor 
         my $delay_delta = 0;
