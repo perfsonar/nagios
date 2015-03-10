@@ -17,11 +17,13 @@ required for a check.
 has 'ma_url' => (is => 'rw', isa => 'Str');
 has 'source' => (is => 'rw', isa => 'Str|Undef');
 has 'destination' => (is => 'rw', isa => 'Str|Undef');
+has 'measurement_agent' => (is => 'rw', isa => 'Str|Undef');
 has 'time_range' => (is => 'rw', isa => 'Int');
 has 'bidirectional' => (is => 'rw', isa => 'Bool', default => sub { 0 });
 has 'timeout' => (is => 'rw', isa => 'Int', default => sub { 60 });
 has 'ip_type' => (is => 'rw', isa => 'Str', default => sub { 'v4v6' });
-
+has 'tool_name' => (is => 'rw', isa => 'Str|Undef');
+has 'custom_filters' => (is => 'rw', isa => 'ArrayRef|Undef');
 
 __PACKAGE__->meta->make_immutable;
 

@@ -12,10 +12,10 @@ extends 'perfSONAR_PS::ServiceChecks::Check';
 override 'do_check' => sub {
     my ($self, $params) = @_;
     my $stats = Statistics::Descriptive::Sparse->new();
-    my $res = $self->call_ma($params->ma_url, $params->source, $params->destination, $params->time_range, $params->protocol, $params->timeout,  $params->ip_type, $stats);
+    my $res = $self->call_ma($params->source, $params->destination, $params, $stats);
     return ($res, $stats) if($res);
     if($params->bidirectional){
-        $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $params->protocol, $params->timeout, $params->ip_type, $stats);
+        $res = $self->call_ma($params->destination, $params->source, $params, $stats);
         return ($res, $stats) if($res);
     }
     return ('', $stats);
@@ -23,21 +23,33 @@ override 'do_check' => sub {
 
 sub call_ma {
     #send request
-    my ($self, $ma_url, $src, $dst, $time_int, $protocol, $timeout, $ip_type, $stats) = @_;
+    my ($self, $src, $dst $params, $stats) = @_;
+    my $ip_type= $params->ip_type;
     
-    my $filters = new perfSONAR_PS::Client::Esmond::ApiFilters(timeout => $timeout);
+    my $filters = new perfSONAR_PS::Client::Esmond::ApiFilters(timeout => $params->timeout);
     $filters->source($src) if($src);
     $filters->destination($dst) if($dst);
-    $filters->metadata_filters->{'ip-transport-protocol'} = $protocol if($protocol);
+    $filters->measurement_agent($params->measurement_agent) if($params->measurement_agent);
+    $filters->tool_name($params->tool_name) if($params->tool_name);
+    $filters->metadata_filters->{'ip-transport-protocol'} = $params->protocol if($params->protocol);
+    $filters->metadata_filters->{'bw-target-bandwidth'} = $params->udp_bandwidth if($params->udp_bandwidth);
+    if($params->custom_filters){
+        foreach my $custom_filter(@{$params->custom_filters}){
+            my @filter_parts = split ':', $custom_filter;
+            next if(@filter_parts != 2);
+            $filters->metadata_filters->{$filter_parts[0]} = $filter_parts[1];
+        }
+    }
+    
     if($ip_type eq 'v4'){
         $filters->dns_match_only_v4();
     }elsif($ip_type eq 'v6'){
         $filters->dns_match_only_v6();
     }
-    $filters->time_range($time_int) if($time_int);
+    $filters->time_range($params->time_range) if($params->time_range);
     $filters->event_type('throughput');
     my $client = new perfSONAR_PS::Client::Esmond::ApiConnect(
-        url => $ma_url,
+        url => $params->ma_url,
         filters => $filters
     );
     

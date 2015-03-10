@@ -23,11 +23,11 @@ override 'do_check' => sub {
     my $stats = Statistics::Descriptive::Sparse->new();
     my @fwd_metadata = ();
     my @rev_metadata = ();
-    my $res = $self->call_ma($params->ma_url, $params->source, $params->destination, $params->time_range, $params->metric, $params->as_percentage, $params->timeout, $params->ip_type, 1000, $stats, \@fwd_metadata);
+    my $res = $self->call_ma($params->source, $params->destination, $params->metric, $params, 1000, $stats, \@fwd_metadata);
     my $extra_stats = {};
     return ($res, $stats) if($res);
     if($params->bidirectional){
-        $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $params->metric, $params->as_percentage, $params->timeout, $params->ip_type, 1000, $stats, \@rev_metadata);
+        $res = $self->call_ma($params->destination, $params->source, $params->metric, $params, 1000, $stats, \@rev_metadata);
         return ($res, $stats) if($res);
     }
     
@@ -47,7 +47,7 @@ override 'do_check' => sub {
             return ('', $stats, $extra_stats) if($res); #quietly exit if this fails since not primary stat
         }else{
             my $metric = $params->compare_quantile . '_delay';
-            $res = $self->call_ma($params->ma_url, $params->destination, $params->source, $params->time_range, $metric, $params->as_percentage, $params->timeout, $params->ip_type, 1, $rev_stats, \@rev_metadata);
+            $res = $self->call_ma($params->destination, $params->source, $metric, $params, 1, $rev_stats, \@rev_metadata);
             return ('', $stats, $extra_stats) if($res); #quietly exit if this fails since not primary stat
         }
         
@@ -94,13 +94,25 @@ override 'do_check' => sub {
 
 sub call_ma {
     #send request
-    my ($self, $ma_url, $src, $dst, $time_int, $metric, $as_percentage, $timeout, $ip_type, $units, $stats, $md) = @_;
+    my ($self, $src, $dst, $metric, $params, $units, $stats, $md) = @_;
+    my $ip_type= $params->ip_type;
+    my $as_percentage= $params->as_percentage;
     
-    my $filters = new perfSONAR_PS::Client::Esmond::ApiFilters(timeout => $timeout);
+    my $filters = new perfSONAR_PS::Client::Esmond::ApiFilters(timeout => $params->timeout);
     my $stat = '';
     $filters->source($src) if($src);
     $filters->destination($dst) if($dst);
-    $filters->time_range($time_int) if($time_int);
+    $filters->measurement_agent($params->measurement_agent) if($params->measurement_agent);
+    $filters->tool_name($params->tool_name) if($params->tool_name);
+    $filters->time_range($params->time_range) if($params->time_range);
+    if($params->custom_filters){
+        foreach my $custom_filter(@{$params->custom_filters}){
+            my @filter_parts = split ':', $custom_filter;
+            next if(@filter_parts != 2);
+            $filters->metadata_filters->{$filter_parts[0]} = $filter_parts[1];
+        }
+    }
+    
     if($ip_type eq 'v4'){
         $filters->dns_match_only_v4();
     }elsif($ip_type eq 'v6'){
@@ -119,7 +131,7 @@ sub call_ma {
     }
     
     my $client = new perfSONAR_PS::Client::Esmond::ApiConnect(
-        url => $ma_url,
+        url => $params->ma_url,
         filters => $filters
     );
     

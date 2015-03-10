@@ -41,6 +41,9 @@ override 'build_plugin' => sub {
     $np->add_arg(spec => "d|destination=s",
                  help => "Destination of the test to check",
                  required => 0 );
+    $np->add_arg(spec => "a|agent=s",
+                 help => "The IP or hostname of the measurement agent that initiated the test.",
+                 required => 0 );
     $np->add_arg(spec => "p|protocol=s",
                  help => "The protocol used by the test to check (e.g. TCP or UDP)",
                  required => 0 );
@@ -71,7 +74,16 @@ override 'build_plugin' => sub {
     $np->add_arg(spec => "6",
                  help => "Only analyze IPv6 tests",
                  required => 0 );
-
+    $np->add_arg(spec => "tool=s",
+                 help => "the name of the tool used to perform measurements (e.g. bwctl/iperf3, gridftp)",
+                 required => 0 );
+    $np->add_arg(spec => "filter=s@",
+                 help => "Custom filters in the form of key:value that can be matched against test parameters. Can be specified multiple times.",
+                 required => 0 );
+    $np->add_arg(spec => "udpbandwidth=s",
+                 help => "If protocol set to UDP, the udp bandwidth of the test to check.",
+                 required => 0 );
+                 
     return $np;
 };
 
@@ -115,11 +127,15 @@ override 'build_check_parameters' => sub {
         'ma_url' => $np->opts->{'u'},
         'source' => $np->opts->{'s'},
         'destination' => $np->opts->{'d'},
+        'measurement_agent' => $np->opts->{'a'},
         'time_range' => $np->opts->{'r'},
         'bidirectional' => $np->opts->{'b'},
         'timeout' => $np->opts->{'timeout'},
         'protocol' => $np->opts->{'p'},
         'ip_type' => $ip_type,
+        'tool_name' => $np->opts->{'tool'},
+        'udp_bandwidth' => $np->opts->{'udpbandwidth'},
+        'custom_filters' => $np->opts->{'filter'},
     );
 };
 
