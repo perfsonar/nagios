@@ -1,0 +1,3 @@
+lib/perfSONAR_PS/ServiceChecks usr/lib/perfsonar/lib/perfSONAR_PS
+bin/* usr/lib/perfsonar/bin
+deprecated-bin/* usr/lib/perfsonar/bin
