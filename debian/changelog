@@ -1,4 +1,4 @@
-perfsonar-nagios (3.4.1-1) UNRELEASED; urgency=low
+nagios-plugins-perfsonar (3.4.1-1) UNRELEASED; urgency=low
 
   * Port to Debian.
 

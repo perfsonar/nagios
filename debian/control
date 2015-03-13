@@ -1,5 +1,5 @@
-Source: perfsonar-nagios
-Section: misc
+Source: nagios-plugins-perfsonar
+Section: perl
 Priority: extra
 Maintainer: Antoine Delvaux <antoine.delvaux@dante.net>
 Build-Depends: debhelper (>= 9.0.0), quilt
@@ -8,12 +8,21 @@ Homepage: http://www.perfsonar.net
 Vcs-Git: https://code.google.com/p/perfsonar-ps/
 Vcs-Browser: https://code.google.com/p/perfsonar-ps/source/browse?repo=default
 
-Package: perfsonar-nagios
+Package: nagios-plugins-perfsonar
 Architecture: all
-Depends: perl, libperfsonar-perl, libperfsonar-sls-perl, memcached,
- libcache-memcached-perl, libdata-validate-ip-perl, libjson-perl, libwww-perl,
- libmouse-perl, libnagios-plugin-perl, libparams-validate-perl,
- libstatistics-descriptive-perl, libxml-libxml-perl, ${misc:Depends}
+Depends: perl, libperfsonar-servicechecks-perl, libperfsonar-perl,
+ libperfsonar-sls-perl, libjson-perl, libnagios-plugin-perl,
+ memcached, ${misc:Depends}
 Description: perfSONAR Nagios Plugins
  The perfSONAR_PS-Nagios Plugins can be used with Nagios to monitor
  the various perfSONAR services.
+
+Package: libperfsonar-servicechecks-perl
+Architecture: all
+Depends: perl, libperfsonar-perl, libcache-memcached-perl,
+ libdata-validate-ip-perl, libwww-perl, libmouse-perl, libnagios-plugin-perl,
+ libparams-validate-perl, libstatistics-descriptive-perl, libxml-libxml-perl,
+ ${misc:Depends}
+Description: perfSONAR ServiceChecks
+ The perfSONAR_PS-ServiceChecks can be used for writing Nagios plugins to
+ monitoring various perfSONAR services.

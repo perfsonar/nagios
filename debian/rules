@@ -12,4 +12,4 @@ override_dh_auto_install:
 # make all scripts executable
 override_dh_install:
 	dh_install
-	chmod +x debian/perfsonar-nagios/usr/lib/perfsonar/bin/*
+	chmod +x debian/nagios-plugins-perfsonar/usr/lib/nagios/plugins/*
