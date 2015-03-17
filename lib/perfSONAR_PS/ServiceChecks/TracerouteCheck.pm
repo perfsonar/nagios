@@ -5,9 +5,9 @@ use Mouse;
 our $VERSION = 3.4;
 
 extends 'perfSONAR_PS::ServiceChecks::Check';
-use constant ENABLE_PSB => 1;
+use constant ENABLE_PSB => 0;
 
-use if ENABLE_PSB, ' perfSONAR_PS::ServiceChecks::PSBTracerouteCheck';
+use if ENABLE_PSB, 'perfSONAR_PS::ServiceChecks::PSBTracerouteCheck';
 use perfSONAR_PS::ServiceChecks::EsmondTracerouteCheck;
 
 override 'do_check' => sub {

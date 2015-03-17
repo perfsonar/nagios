@@ -3,7 +3,7 @@ package perfSONAR_PS::ServiceChecks::OWDelayCheck;
 use Mouse;
 
 our $VERSION = 3.4;
-use constant ENABLE_PSB => 1;
+use constant ENABLE_PSB => 0;
 
 use if ENABLE_PSB, 'perfSONAR_PS::ServiceChecks::PSBOWDelayCheck';
 use perfSONAR_PS::ServiceChecks::EsmondOWDelayCheck;

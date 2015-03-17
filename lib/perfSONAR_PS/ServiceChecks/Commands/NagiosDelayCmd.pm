@@ -38,7 +38,7 @@ override 'build_plugin' => sub {
     
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
                               timeout => $self->timeout,
-                              usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -b|--bidirectional --digits <significant-digits> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> -t|timeout <timeout> -q|quantile <quantile> -4 -6" );
+                              usage => "Usage: %s <options>" );
 
     #get arguments
     $np->add_arg(spec => "u|url=s",
@@ -49,6 +49,9 @@ override 'build_plugin' => sub {
                  required => 0 );
     $np->add_arg(spec => "d|destination=s",
                  help => "Destination of the test to check",
+                 required => 0 );
+    $np->add_arg(spec => "a|agent=s",
+                 help => "The IP or hostname of the measurement agent that initiated the test.",
                  required => 0 );
     $np->add_arg(spec => "b|bidirectional",
                  help => "Indicates that test should be checked in each direction.",
@@ -73,6 +76,12 @@ override 'build_plugin' => sub {
                  required => 0 );
     $np->add_arg(spec => "6",
                  help => "Only analyze IPv6 tests",
+                 required => 0 );
+    $np->add_arg(spec => "tool=s",
+                 help => "the name of the tool used to perform measurements.",
+                 required => 0 );
+    $np->add_arg(spec => "filter=s@",
+                 help => "Custom filters in the form of key:value that can be matched against test parameters. Can be specified multiple times.",
                  required => 0 );
 
     return $np;
@@ -107,11 +116,14 @@ override 'build_check_parameters' => sub {
         'ma_url' => $np->opts->{'u'},
         'source' => $np->opts->{'s'},
         'destination' => $np->opts->{'d'},
+        'measurement_agent' => $np->opts->{'a'},
         'time_range' => $np->opts->{'r'},
         'bidirectional' => $np->opts->{'b'},
         'timeout' => $np->opts->{'timeout'},
         'metric' => $metric,
         'ip_type' => $ip_type,
+        'tool_name' => $np->opts->{'tool'},
+        'custom_filters' => $np->opts->{'filter'},
     );
 };
 

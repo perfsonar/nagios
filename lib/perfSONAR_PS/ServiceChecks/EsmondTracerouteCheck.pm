@@ -14,11 +14,20 @@ override 'do_check' => sub {
     my $filters = new perfSONAR_PS::Client::Esmond::ApiFilters(timeout => $params->timeout);
     $filters->source($params->source) if($params->source);
     $filters->destination($params->destination) if($params->destination);
+    $filters->measurement_agent($params->measurement_agent) if($params->measurement_agent);
+    $filters->tool_name($params->tool_name) if($params->tool_name);
     $filters->time_range($params->time_range) if($params->time_range);
     if($params->ip_type eq 'v4'){
         $filters->dns_match_only_v4();
     }elsif($params->ip_type eq 'v6'){
         $filters->dns_match_only_v6();
+    }
+    if($params->custom_filters){
+        foreach my $custom_filter(@{$params->custom_filters}){
+            my @filter_parts = split ':', $custom_filter;
+            next if(@filter_parts != 2);
+            $filters->metadata_filters->{$filter_parts[0]} = $filter_parts[1];
+        }
     }
     $filters->event_type('packet-trace');
     my $client = new perfSONAR_PS::Client::Esmond::ApiConnect(

@@ -2,6 +2,7 @@ package perfSONAR_PS::ServiceChecks::Commands::NagiosCmd;
 
 use Mouse;
 use Nagios::Plugin;
+use Nagios::Plugin qw(%STATUS_TEXT);
 use Statistics::Descriptive;
 
 our $VERSION = 3.4;
@@ -71,9 +72,9 @@ sub run{
     #call client
     my $checker = $self->build_check($np);
     my $parameters = $self->build_check_parameters($np);
-    my ($result, $stats);
+    my ($result, $stats, $extra_code, $extra_msg, $extra_stats);
     eval{
-        ($result, $stats) = $checker->do_check($parameters);
+        ($result, $stats, $extra_stats, $extra_code, $extra_msg) = $checker->do_check($parameters);
     };
     if($@){
         $np->nagios_die("Error with underlying check: " . $@);
@@ -113,7 +114,16 @@ sub run{
             label => 'Standard_Deviation',
             value => $stats->standard_deviation() * $self->metric_scale,
         );
-
+    
+    if($extra_stats){
+        foreach my $stat_label(keys %{$extra_stats}){
+            $np->add_perfdata(
+                label => $stat_label,
+                value => $extra_stats->{$stat_label},
+            );
+        }
+    }
+        
     my $code = $np->check_threshold(
          check => $stats->mean() * $self->metric_scale,
          warning => $np->opts->{'w'},
@@ -126,7 +136,18 @@ sub run{
     }else{
         $msg = "Error analyzing results";
     }
-    $np->nagios_exit($code, $msg);
+    
+    if($extra_code && $code eq OK){
+        $code = $extra_code;
+        $msg = $extra_msg;
+    }
+    
+    
+    #Do own output and exit since nagios doesn't allow custom states
+    my $output = $self->nagios_name . ' ' . (exists $STATUS_TEXT{$code} ? $STATUS_TEXT{$code} : 'CUSTOM') . " - $msg";
+    $output .= " | ". $np->all_perfoutput if $np->perfdata && $np->all_perfoutput;
+    print "$output\n";
+    exit $code;
 }
 
 __PACKAGE__->meta->make_immutable;
