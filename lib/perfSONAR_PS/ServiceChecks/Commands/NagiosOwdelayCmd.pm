@@ -23,6 +23,7 @@ will match data as the SOAP interface never implemented any of the other stats.
 
 extends 'perfSONAR_PS::ServiceChecks::Commands::NagiosCmd';
 
+
 use constant DELAY_LABEL => 'ms';
 use constant DELAY_FIELD => 'min_delay';
 use constant DELAY_SCALE => 1000;
@@ -38,12 +39,17 @@ use constant DELAY_STRING => {
 use constant LOSS_LABEL => 'pps';
 use constant LOSS_LABEL_LONG => ' packets per session';
 use constant LOSS_PERCENT_LABEL => '%';
+use constant LOSS_TOTAL_LABEL => ' packets';
 use constant LOSS_FIELD => 'loss';
 use constant LOSS_SCALE => 1;
 use constant LOSS_STRING => 'Loss';
 use constant DEFAULT_MEMD_ADDR => '127.0.0.1:11211';
 use constant DEFAULT_MEMD_EXP => 300;
 use constant DEFAULT_MEMD_COMPRESS_THRESH => 1000000;
+use constant STAT_TYPE_AVERAGE => 'average';
+use constant STAT_TYPE_TOTAL => 'total';
+
+has 'stat_type' => (is => 'rw', isa => 'Str', default => sub{ return STAT_TYPE_AVERAGE; }); 
 
 override 'build_plugin' => sub {
     my $self = shift;
@@ -121,6 +127,9 @@ override 'build_plugin' => sub {
     $np->add_arg(spec => "filter=s@",
                  help => "Custom filters in the form of key:value that can be matched against test parameters. Can be specified multiple times.",
                  required => 0 );
+    $np->add_arg(spec => "total",
+                 help => "Do not average results, look at them as a total count",
+                 required => 0 );
 
     return $np;
 };
@@ -146,6 +155,7 @@ override 'build_check' => sub {
             $memd_expire_time = $np->opts->{'r'};
         }
     }
+    
     return new perfSONAR_PS::ServiceChecks::OWDelayCheck(memd => $memd, memd_expire_time => $memd_expire_time);
 };
 
@@ -158,8 +168,20 @@ override 'build_check_parameters' => sub {
     my $metric_string = DELAY_STRING->{$metric};
     if($np->opts->{'l'}){
         $metric = LOSS_FIELD;
-        $metric_label = ($np->opts->{'p'} ? LOSS_PERCENT_LABEL : LOSS_LABEL);
-        $metric_label_long = ($np->opts->{'p'} ? LOSS_PERCENT_LABEL : LOSS_LABEL_LONG);
+        if($np->opts->{'total'} && $np->opts->{'p'}){
+            $np->nagios_die("You cannot specify both --total and -p");
+        }elsif($np->opts->{'total'}){
+            $self->stat_type(STAT_TYPE_TOTAL);
+            $self->default_digits(0);
+            $metric_label = LOSS_TOTAL_LABEL;
+            $metric_label_long = LOSS_TOTAL_LABEL;
+        }elsif($np->opts->{'p'}){
+            $metric_label = LOSS_PERCENT_LABEL;
+            $metric_label_long = LOSS_PERCENT_LABEL;
+        }else{
+            $metric_label = LOSS_LABEL;
+            $metric_label_long = LOSS_LABEL_LONG;
+        }
         $metric_scale = LOSS_SCALE;
         $metric_string = LOSS_STRING;
     }elsif($np->opts->{'q'}){
@@ -204,6 +226,18 @@ override 'build_check_parameters' => sub {
     
     return $latency_params;
 };
+
+override 'get_stat' => sub {
+    my ($self, $stats) = @_;
+    
+    if($self->stat_type() eq STAT_TYPE_TOTAL){
+        $self->units(LOSS_TOTAL_LABEL);
+        return ('Total', ($stats->sum() * $self->metric_scale) );
+    }
+    
+    return super();
+};
+
 
 __PACKAGE__->meta->make_immutable;
 
