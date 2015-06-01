@@ -23,7 +23,7 @@ override 'do_check' => sub {
 
 sub call_ma {
     #send request
-    my ($self, $src, $dst $params, $stats) = @_;
+    my ($self, $src, $dst, $params, $stats) = @_;
     my $ip_type= $params->ip_type;
     
     my $filters = new perfSONAR_PS::Client::Esmond::ApiFilters(timeout => $params->timeout);
