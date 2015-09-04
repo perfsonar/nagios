@@ -123,16 +123,17 @@ sub run{
             );
         }
     }
-        
+    
+    my ($stat_type, $value_to_check) =  $self->get_stat($stats);
     my $code = $np->check_threshold(
-         check => $stats->mean() * $self->metric_scale,
+         check => $value_to_check,
          warning => $np->opts->{'w'},
          critical => $np->opts->{'c'},
        );
 
     my $msg = "";   
     if($code eq OK || $code eq WARNING || $code eq CRITICAL){
-        $msg = "Average " . $self->metric_name . " is " . sprintf("%.${digits}f", ($stats->mean() * $self->metric_scale)) . $self->unit_prefix . (defined $self->units_long_name ? $self->units_long_name : $self->units);
+        $msg = "$stat_type " . $self->metric_name . " is " . sprintf("%.${digits}f", $value_to_check) . $self->unit_prefix . (defined $self->units_long_name ? $self->units_long_name : $self->units);
     }else{
         $msg = "Error analyzing results";
     }
@@ -148,6 +149,19 @@ sub run{
     $output .= " | ". $np->all_perfoutput if $np->perfdata && $np->all_perfoutput;
     print "$output\n";
     exit $code;
+}
+
+=head2 get_stat($stats)
+
+Returns the value to be checked and a label to be used in the output. This 
+base function provides the mean and the label 'Average', but can be overridden
+if one desires a different stat type such as sum, etc.
+=cut
+sub get_stat{
+    my $self = shift;
+    my $stats = shift;
+    
+    return ( 'Average', ($stats->mean() * $self->metric_scale) );
 }
 
 __PACKAGE__->meta->make_immutable;
