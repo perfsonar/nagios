@@ -1,6 +1,6 @@
 %define install_base /opt/perfsonar_ps/nagios
 
-%define relnum 0.2.rc2 
+%define relnum 1 
 %define disttag pSPS
 
 Name:			perl-perfSONAR_PS-Nagios
