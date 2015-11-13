@@ -1,12 +1,12 @@
 Source: nagios-plugins-perfsonar
 Section: perl
 Priority: extra
-Maintainer: Antoine Delvaux <antoine.delvaux@dante.net>
-Build-Depends: debhelper (>= 9.0.0), quilt
-Standards-Version: 3.9.3
+Maintainer: Antoine Delvaux <a.delvaux@man.poznan.pl>
+Build-Depends: debhelper (>= 9), quilt
+Standards-Version: 3.9.6
 Homepage: http://www.perfsonar.net
-Vcs-Git: https://code.google.com/p/perfsonar-ps/
-Vcs-Browser: https://code.google.com/p/perfsonar-ps/source/browse?repo=default
+Vcs-Git: https://github.com/perfsonar/nagios.git
+Vcs-Browser: https://github.com/perfsonar/nagios
 
 Package: nagios-plugins-perfsonar
 Architecture: all
