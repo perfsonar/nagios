@@ -1,8 +1,8 @@
-nagios-plugins-perfsonar (3.5-2) UNRELEASED; urgency=low
+nagios-plugins-perfsonar (3.5.1~1.a1-1) UNRELEASED; urgency=low
 
   * Port to Jessie.
 
- -- Antoine Delvaux <adelvaux@man.poznan.pl>  Fri, 13 Nov 2015 11:51:25 +0000
+ -- Antoine Delvaux <adelvaux@man.poznan.pl>  Sun, 31 Jan 2016 11:17:08 +0000
 
 nagios-plugins-perfsonar (3.5-1) perfsonar-wheezy-release; urgency=low
 
