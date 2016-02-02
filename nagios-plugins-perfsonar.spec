@@ -1,16 +1,16 @@
-%define install_base /opt/perfsonar_ps/nagios
+%define install_base /usr/lib/perfsonar/
+%define plugin_base %{_libdir}/nagios/plugins
 
-%define relnum 1 
-%define disttag pSPS
+%define relnum 0.0.a1 
 
-Name:			perl-perfSONAR_PS-Nagios
-Version:		3.5
-Release:		%{relnum}.%{disttag}
-Summary:		perfSONAR_PS Nagios Plugins
+Name:			nagios-plugins-perfsonar
+Version:		3.5.1
+Release:		%{relnum}
+Summary:		perfSONAR Nagios Plugins
 License:		Distributable, see LICENSE
 Group:			Development/Libraries
 URL:			http://www.nagios.org/
-Source0:		perfSONAR_PS-Nagios-%{version}.%{relnum}.tar.gz
+Source0:		nagios-plugins-perfsonar-%{version}.%{relnum}.tar.gz
 BuildRoot:		%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:		noarch
 Requires:		perl
@@ -31,15 +31,20 @@ Requires:		perl(Statistics::Descriptive)
 Requires:		perl(Time::HiRes)
 Requires:		perl(XML::LibXML)
 Requires:		perl(Cache::Memcached)
-Requires:               perl(Mouse)
-Requires:               perl(JSON::XS)
+Requires:		perl(Mouse)
+Requires:		perl(JSON::XS)
 Requires:		memcached
 Requires:		chkconfig
 Requires:		coreutils
 Requires:		shadow-utils
+Requires:		libperfsonar-perl
+Requires:		libperfsonar-esmond-perl
+Requires:		libperfsonar-sls-perl
+Obsoletes:		perl-perfSONAR_PS-Nagios
+Provides:		perl-perfSONAR_PS-Nagios
 
 %description
-The perfSONAR_PS-Nagios Plugins can be used with Nagios to monitor the various
+The perfSONAR Nagios Plugins can be used with Nagios to monitor the various
 perfSONAR services.
 
 %pre
@@ -47,14 +52,17 @@ perfSONAR services.
 /usr/sbin/useradd -g perfsonar -r -s /sbin/nologin -c "perfSONAR User" -d /tmp perfsonar 2> /dev/null || :
 
 %prep
-%setup -q -n perfSONAR_PS-Nagios-%{version}.%{relnum}
+%setup -q -n nagios-plugins-perfsonar-%{version}.%{relnum}
 
 %build
 
 %install
 rm -rf %{buildroot}
 
-make ROOTPATH=%{buildroot}/%{install_base} rpminstall
+make ROOTPATH=%{buildroot}/%{install_base} LIBPATH=%{install_base}/lib PLUGINPATH=%{buildroot}/%{plugin_base} install
+
+install -D -m 0755  %{buildroot}/%{install_base}/bin/* %{buildroot}/%{plugin_base}/
+rm -rf %{buildroot}/%{install_base}/bin
 
 %clean
 rm -rf %{buildroot}
@@ -62,16 +70,11 @@ rm -rf %{buildroot}
 %post
 mkdir -p /var/log/perfsonar/nagios
 chown perfsonar:perfsonar /var/log/perfsonar/nagios
-chkconfig memcached on
 
 %files
 %defattr(-,perfsonar,perfsonar,-)
-%doc %{install_base}/doc/*
-%config %{install_base}/etc/*
-%attr(0755,perfsonar,perfsonar) %{install_base}/bin/*
-%attr(0755,perfsonar,perfsonar) %{install_base}/deprecated-bin/*
+%attr(0755,perfsonar,perfsonar) %{plugin_base}/*
 %attr(0755,perfsonar,perfsonar) %{install_base}/lib/*
-%{install_base}/dependencies
 
 %changelog
 * Thu Jun 18 2014 andy@es.net 3.4-2
