@@ -12,7 +12,6 @@ Group:			Development/Libraries
 URL:			http://www.nagios.org/
 Source0:		nagios-plugins-perfsonar-%{version}.%{relnum}.tar.gz
 BuildRoot:		%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildArch:		noarch
 Requires:		perl
 Requires:		perl(Carp)
 Requires:		perl(Data::UUID)
