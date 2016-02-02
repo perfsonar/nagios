@@ -1,4 +1,4 @@
-%define install_base /usr/lib/perfsonar/
+%define install_base /usr/lib/perfsonar
 %define plugin_base %{_libdir}/nagios/plugins
 
 %define relnum 0.0.a1 
