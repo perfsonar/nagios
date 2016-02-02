@@ -61,9 +61,6 @@ rm -rf %{buildroot}
 
 make ROOTPATH=%{buildroot}/%{install_base} LIBPATH=%{install_base}/lib PLUGINPATH=%{buildroot}/%{plugin_base} install
 
-install -D -m 0755  %{buildroot}/%{install_base}/bin/* %{buildroot}/%{plugin_base}/
-rm -rf %{buildroot}/%{install_base}/bin
-
 %clean
 rm -rf %{buildroot}
 
