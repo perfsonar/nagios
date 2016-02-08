@@ -26,9 +26,6 @@ lib/perfSONAR_PS/ServiceChecks/EsmondRecCountCheck.pm
 lib/perfSONAR_PS/ServiceChecks/EsmondThroughputCheck.pm
 lib/perfSONAR_PS/ServiceChecks/EsmondTracerouteCheck.pm
 lib/perfSONAR_PS/ServiceChecks/OWDelayCheck.pm
-lib/perfSONAR_PS/ServiceChecks/PSBOWDelayCheck.pm
-lib/perfSONAR_PS/ServiceChecks/PSBThroughputCheck.pm
-lib/perfSONAR_PS/ServiceChecks/PSBTracerouteCheck.pm
 lib/perfSONAR_PS/ServiceChecks/Parameters/CheckParameters.pm
 lib/perfSONAR_PS/ServiceChecks/Parameters/LatencyParameters.pm
 lib/perfSONAR_PS/ServiceChecks/Parameters/RecCountParameters.pm
