@@ -1,7 +1,9 @@
-PACKAGE=perfSONAR_PS-Nagios
-ROOTPATH=/opt/perfsonar_ps/nagios
-VERSION=3.5
-RELEASE=1
+PACKAGE=nagios-plugins-perfsonar
+ROOTPATH=/usr/lib/perfsonar
+LIBPATH=${ROOTPATH}/lib
+PLUGINPATH=/usr/lib/nagios/plugins
+VERSION=3.5.1
+RELEASE=0.1.rc1
 
 default:
 	@echo No need to build the package. Just run \"make install\"
@@ -16,13 +18,10 @@ dist:
 	rm -rf /tmp/$(PACKAGE)-$(VERSION).$(RELEASE)
 
 
-rpminstall:
-	mkdir -p ${ROOTPATH}
-	tar ch --exclude=etc/* --exclude=*spec --exclude=MANIFEST --exclude=Makefile -T MANIFEST | tar x -C ${ROOTPATH}
-	for i in `cat MANIFEST | grep ^etc`; do  mkdir -p `dirname $(ROOTPATH)/$${i}`; if [ -e $(ROOTPATH)/$${i} ]; then install -m 640 -c $${i} $(ROOTPATH)/$${i}.new; else install -m 640 -c $${i} $(ROOTPATH)/$${i}; fi; done
-
 install:
 	mkdir -p ${ROOTPATH}
-	tar ch --exclude=etc/* --exclude=*spec --exclude=MANIFEST --exclude=Makefile -T MANIFEST | tar x -C ${ROOTPATH}
-	for i in `cat MANIFEST | grep ^etc`; do  mkdir -p `dirname $(ROOTPATH)/$${i}`; if [ -e $(ROOTPATH)/$${i} ]; then install -m 640 -c $${i} $(ROOTPATH)/$${i}.new; else install -m 640 -c $${i} $(ROOTPATH)/$${i}; fi; done
-
+	mkdir -p ${PLUGINPATH}
+	tar ch --exclude=etc/* --exclude=*spec --exclude=dependencies --exclude=MANIFEST --exclude=Makefile -T MANIFEST | tar x -C ${ROOTPATH}
+	sed -i 's:.Bin/\.\./lib:${LIBPATH}:g' ${ROOTPATH}/bin/*
+	install ${ROOTPATH}/bin/* ${PLUGINPATH}
+	rm -rf ${ROOTPATH}/bin
