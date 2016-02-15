@@ -1,7 +1,7 @@
 Source: nagios-plugins-perfsonar
 Section: perl
 Priority: extra
-Maintainer: Antoine Delvaux <antoine.delvaux@dante.net>
+Maintainer: Antoine Delvaux <adelvaux@man.poznan.pl>
 Build-Depends: debhelper (>= 9.0.0), quilt
 Standards-Version: 3.9.3
 Homepage: http://www.perfsonar.net
