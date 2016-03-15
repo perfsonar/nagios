@@ -1,3 +1,9 @@
+nagios-plugins-perfsonar (3.5.1-2) perfsonar-jessie-release; urgency=low
+
+  * Add libperfsonar-esmond-perl dependency
+
+ -- Valentin Vidic <Valentin.Vidic@CARNet.hr>  Tue, 15 Mar 2016 15:14:57 +0100
+
 nagios-plugins-perfsonar (3.5.1-1) perfsonar-jessie-release; urgency=low
 
   * Port to Jessie.
