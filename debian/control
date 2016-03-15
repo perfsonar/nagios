@@ -22,7 +22,7 @@ Architecture: all
 Depends: perl, libperfsonar-perl, libcache-memcached-perl,
  libdata-validate-ip-perl, libwww-perl, libmouse-perl, libnagios-plugin-perl,
  libparams-validate-perl, libstatistics-descriptive-perl, libxml-libxml-perl,
- ${misc:Depends}
+ libperfsonar-esmond-perl, ${misc:Depends}
 Description: perfSONAR ServiceChecks
  The perfSONAR_PS-ServiceChecks can be used for writing Nagios plugins to
  monitoring various perfSONAR services.
