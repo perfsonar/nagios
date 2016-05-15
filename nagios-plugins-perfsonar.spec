@@ -5,7 +5,7 @@
 
 Name:			nagios-plugins-perfsonar
 Version:		3.5.1
-Release:		%{relnum}
+Release:		%{relnum}%{?dist}
 Summary:		perfSONAR Nagios Plugins
 License:		Distributable, see LICENSE
 Group:			Development/Libraries
