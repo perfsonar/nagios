@@ -31,21 +31,33 @@ $np->add_arg(spec => "x|external=s",
 $np->add_arg(spec => "g|grid=s",
                  help => "The name of the grid to check",
                  required => 1 );
-$np->add_arg(spec => "d|dimension=s",
+$np->add_arg(spec => "site|site=s",
                  help => "The label of the row/column to check",
                  required => 0 );
 $np->getopts;
 
 
 #checkopts
+
+#init various urls and vars
 my $base_url = $np->opts->{'u'};
 $base_url .= '/' if( $base_url !~ /\/$/);
 my $remote_url = $np->opts->{'x'};
-$remote_url .= '/' if( $remote_url !~ /\/$/);
-my $grid_url = ($remote_url ? $remote_url : $base_url) . "grids/" . uri_escape($np->opts->{'g'});
-my $report_url = $base_url . "report?json=" . $grid_url;
-my $dimension = $np->opts->{'d'};
-#print "$report_url\n";
+my $site = $np->opts->{'s'};
+
+#determine proper url
+my $report_url = "";
+if($remote_url){
+    #remote grid
+    $remote_url .= '/' if( $remote_url !~ /\/$/);
+    my $grid_url = $remote_url . "grids/" . uri_escape($np->opts->{'g'});
+    $report_url = $base_url . "report?json=" . $grid_url;
+}else{
+    #local grid
+    $report_url = $base_url . "report/?grid=" .  uri_escape($np->opts->{'g'});
+}
+
+print "$report_url\n";
 
 #contact server
 my $ua = LWP::UserAgent->new;
@@ -64,13 +76,13 @@ my $serverity = 0;
 my $msg = "";
 my $stats = [];
 my $problems = [];
-if($dimension){
+if($site){
     $np->nagios_die("Invalid result: JSON missing 'sites' field") unless(exists $json_result->{'sites'} && $json_result->{'sites'});
-    $np->nagios_die("Invalid result: Unable to find report for $dimension. Verify you specified the name correctly and that it is in the grid") unless(exists $json_result->{'sites'}->{$dimension} && $json_result->{'sites'}->{$dimension});
-    $np->nagios_die("Invalid result: Unable to find severity in report for $dimension.") unless(exists $json_result->{'sites'}->{$dimension}->{'severity'});
-    $serverity = $json_result->{'sites'}->{$dimension}->{'severity'};
-    $problems = $json_result->{'sites'}->{$dimension}->{'problems'} if(exists $json_result->{'sites'}->{$dimension}->{'problems'});
-    $stats = $json_result->{'sites'}->{$dimension}->{'stats'} if(exists $json_result->{'sites'}->{$dimension}->{'stats'});
+    $np->nagios_die("Invalid result: Unable to find report for $site. Verify you specified the name correctly and that it is in the grid") unless(exists $json_result->{'sites'}->{$site} && $json_result->{'sites'}->{$site});
+    $np->nagios_die("Invalid result: Unable to find severity in report for $site.") unless(exists $json_result->{'sites'}->{$site}->{'severity'});
+    $serverity = $json_result->{'sites'}->{$site}->{'severity'};
+    $problems = $json_result->{'sites'}->{$site}->{'problems'} if(exists $json_result->{'sites'}->{$site}->{'problems'});
+    $stats = $json_result->{'sites'}->{$site}->{'stats'} if(exists $json_result->{'sites'}->{$site}->{'stats'});
 }else{
     $np->nagios_die("Invalid result: JSON missing 'global' field") unless(exists $json_result->{'global'} && $json_result->{'global'});
     $np->nagios_die("Invalid result: Unable to find severity in report.") unless(exists $json_result->{'global'}->{'severity'});
