@@ -1,8 +1,8 @@
-nagios-plugins-perfsonar (3.5.1.1j-1) UNRELEASED; urgency=low
+nagios-plugins-perfsonar (3.5.1.1-1) perfsonar-jessie-release; urgency=low
 
-  * TO BE FILLED IN ...
+  * New upstream release
 
- -- Antoine Delvaux <adelvaux@man.poznan.pl>  Sun, 15 May 2016 17:07:23 +0000
+ -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Wed, 14 Sep 2016 23:22:05 +0000
 
 nagios-plugins-perfsonar (3.5.1-2) perfsonar-jessie-release; urgency=low
 
