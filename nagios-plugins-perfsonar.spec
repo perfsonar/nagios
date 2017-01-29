@@ -1,10 +1,10 @@
 %define install_base /usr/lib/perfsonar
 %define plugin_base %{_libdir}/nagios/plugins
 
-%define relnum 1 
+%define relnum 0.1.rc2 
 
 Name:			nagios-plugins-perfsonar
-Version:		3.5.1.1
+Version:		4.0
 Release:		%{relnum}%{?dist}
 Summary:		perfSONAR Nagios Plugins
 License:		Distributable, see LICENSE
