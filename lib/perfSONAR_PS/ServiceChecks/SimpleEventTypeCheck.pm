@@ -79,7 +79,7 @@ sub call_ma {
         my $data = $et->get_data();
         return $et->error if($et->error);
         foreach my $d(@{$data}){
-            if(ref($d->val) eq 'SCALAR'){
+            if(!ref($d->val) || ref($d->val) eq 'SCALAR'){
                 $stats->add_data($d->val);
             }else{
                 #not a scalar so just count instances

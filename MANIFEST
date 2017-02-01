@@ -5,6 +5,7 @@ bin/check_loss.pl
 bin/check_maddash.pl
 bin/check_owdelay.pl
 bin/check_path_mtu.pl
+bin/check_ping_loss.pl
 bin/check_pscheduler_raw.pl
 bin/check_retransmits.pl
 bin/check_sls.pl
