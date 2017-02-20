@@ -1,3 +1,9 @@
+nagios-plugins-perfsonar (4.0~2.rc3-1) perfsonar-jessie-staging; urgency=low
+
+  * New upstream release
+
+ -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Mon, 20 Feb 2017 17:44:57 +0100
+
 nagios-plugins-perfsonar (3.5.1.1-1) perfsonar-jessie-release; urgency=low
 
   * New upstream release
