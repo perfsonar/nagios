@@ -5,6 +5,8 @@ bin/check_loss.pl
 bin/check_maddash.pl
 bin/check_owdelay.pl
 bin/check_path_mtu.pl
+bin/check_ping_loss.pl
+bin/check_pscheduler_raw.pl
 bin/check_retransmits.pl
 bin/check_sls.pl
 bin/check_throughput.pl
@@ -16,6 +18,7 @@ lib/perfSONAR_PS/ServiceChecks/Check.pm
 lib/perfSONAR_PS/ServiceChecks/Commands/NagiosCmd.pm
 lib/perfSONAR_PS/ServiceChecks/Commands/NagiosDelayCmd.pm
 lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCmd.pm
+lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCountCmd.pm
 lib/perfSONAR_PS/ServiceChecks/Commands/NagiosOwdelayCmd.pm
 lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputCmd.pm
 lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputOwdelayCmd.pm
