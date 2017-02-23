@@ -12,7 +12,7 @@ Package: nagios-plugins-perfsonar
 Architecture: all
 Depends: perl, libperfsonar-servicechecks-perl, libperfsonar-perl,
  libperfsonar-sls-perl, libjson-perl, libnagios-plugin-perl,
- memcached, ${misc:Depends}
+ memcached, lsof, ${misc:Depends}
 Description: perfSONAR Nagios Plugins
  The perfSONAR_PS-Nagios Plugins can be used with Nagios to monitor
  the various perfSONAR services.
