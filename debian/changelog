@@ -1,14 +1,15 @@
-nagios-plugins-perfsonar (4.0~2.rc3-1~bpo70+1) perfsonar-wheezy-staging; urgency=low
+nagios-plugins-perfsonar (4.0~2.rc3-2~bpo70+1) perfsonar-wheezy-staging; urgency=low
 
   * Backport to Wheezy.
 
- -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Mon, 20 Feb 2017 17:47:16 +0100
+ -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Fri, 24 Feb 2017 15:31:32 +0100
 
-nagios-plugins-perfsonar (4.0~2.rc3-1) perfsonar-jessie-staging; urgency=low
+nagios-plugins-perfsonar (4.0~2.rc3-2) perfsonar-jessie-staging; urgency=low
 
   * New upstream release
+  * Adding autopkgtest tests
 
- -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Mon, 20 Feb 2017 17:44:57 +0100
+ -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Fri, 24 Feb 2017 15:30:14 +0100
 
 nagios-plugins-perfsonar (3.5.1.1-1) perfsonar-jessie-release; urgency=low
 
