@@ -2,7 +2,7 @@ PACKAGE=nagios-plugins-perfsonar
 ROOTPATH=/usr/lib/perfsonar
 LIBPATH=${ROOTPATH}/lib
 PLUGINPATH=/usr/lib/nagios/plugins
-VERSION=4.0
+VERSION=4.0.0.1
 RELEASE=1
 
 default:
