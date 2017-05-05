@@ -31,7 +31,7 @@ $np->add_arg(spec => "x|external=s",
 $np->add_arg(spec => "g|grid=s",
                  help => "The name of the grid to check",
                  required => 1 );
-$np->add_arg(spec => "site|site=s",
+$np->add_arg(spec => "s|site=s",
                  help => "The label of the row/column to check",
                  required => 0 );
 $np->getopts;
@@ -56,8 +56,6 @@ if($remote_url){
     #local grid
     $report_url = $base_url . "report/?grid=" .  uri_escape($np->opts->{'g'});
 }
-
-print "$report_url\n";
 
 #contact server
 my $ua = LWP::UserAgent->new;

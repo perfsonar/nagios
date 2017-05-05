@@ -4,7 +4,7 @@
 %define relnum 1 
 
 Name:			nagios-plugins-perfsonar
-Version:		4.0
+Version:		4.0.0.1
 Release:		%{relnum}%{?dist}
 Summary:		perfSONAR Nagios Plugins
 License:		Distributable, see LICENSE
