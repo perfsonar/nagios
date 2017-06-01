@@ -1,0 +1,260 @@
+--- a/bin/check_maddash.pl
++++ b/bin/check_maddash.pl
+@@ -1,6 +1,6 @@
+ #!/usr/bin/perl
+ 
+-use Nagios::Plugin;
++use Monitoring::Plugin;
+ use URI::Escape;
+ use LWP::UserAgent;
+ use JSON;
+@@ -17,7 +17,7 @@
+ =cut
+ 
+ #create plugin
+-my $np = Nagios::Plugin->new( shortname => "MADDASH",
++my $np = Monitoring::Plugin->new( shortname => "MADDASH",
+                               timeout => 30,
+                               usage => "Usage: %s <options>" );
+ 
+--- a/bin/check_sls.pl
++++ b/bin/check_sls.pl
+@@ -4,7 +4,7 @@
+ 
+ use FindBin qw($Bin);
+ use lib "$Bin/../lib/";
+-use Nagios::Plugin;
++use Monitoring::Plugin;
+ use perfSONAR_PS::Common qw( find findvalue );
+ use SimpleLookupService::QueryObjects::QueryObject;
+ use SimpleLookupService::QueryObjects::QueryObjectFactory;
+@@ -13,7 +13,7 @@
+ use SimpleLookupService::Keywords::KeyNames;
+ use perfSONAR_PS::Client::LS::PSKeywords::PSKeyNames;
+ 
+-my $np = Nagios::Plugin->new(
++my $np = Monitoring::Plugin->new(
+ 	shortname => 'check_sls',
+ 	timeout   => 60,
+ 	usage     =>
+--- a/bin/check_toolkit.pl
++++ b/bin/check_toolkit.pl
+@@ -4,12 +4,12 @@
+ 
+ use FindBin qw($Bin);
+ use lib "$Bin/../lib/";
+-use Nagios::Plugin;
++use Monitoring::Plugin;
+ use JSON;
+ 
+ use perfSONAR_PS::Utils::HTTPS qw(https_get);
+ 
+-my $np = Nagios::Plugin->new(
++my $np = Monitoring::Plugin->new(
+ 	shortname => 'check_toolkit',
+ 	timeout   => 60,
+ 	usage     =>
+--- a/dependencies
++++ b/dependencies
+@@ -20,7 +20,7 @@
+ Log::Log4perl
+ Moose
+ Moose::Util::TypeConstraints
+-Nagios::Plugin
++Monitoring::Plugin
+ Net::DNS
+ Net::Ping
+ NetAddr::IP
+--- a/doc/README.txt
++++ b/doc/README.txt
+@@ -34,7 +34,7 @@
+     (+)Data::Validate::IP
+     (+)LWP::Simple
+     (+)LWP::UserAgent
+-    (+)Nagios::Plugin
++    (+)Monitoring::Plugin
+     (+)Params::Validate
+     (+)Statistics::Descriptive
+     (+)XML::LibXML
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosCmd.pm
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosCmd.pm
+@@ -1,8 +1,8 @@
+ package perfSONAR_PS::ServiceChecks::Commands::NagiosCmd;
+ 
+ use Mouse;
+-use Nagios::Plugin;
+-use Nagios::Plugin qw(%STATUS_TEXT);
++use Monitoring::Plugin;
++use Monitoring::Plugin qw(%STATUS_TEXT);
+ use Statistics::Descriptive;
+ 
+ our $VERSION = 3.4;
+@@ -31,7 +31,7 @@
+ 
+ =head2 build_plugin()
+ 
+-Returns a Nagios::Plugin. Subclasses should construct an initial Nagios::Plugin
++Returns a Monitoring::Plugin. Subclasses should construct an initial Monitoring::Plugin
+ in this class with the desired command-line options.
+ =cut
+ sub build_plugin {
+@@ -40,7 +40,7 @@
+ 
+ =head2 build_check($np)
+ 
+-Given the Nagios::Plugin object created by build_plugin, this method creates the subclass 
++Given the Monitoring::Plugin object created by build_plugin, this method creates the subclass 
+ of perfSONAR_PS::ServiceChecks::Check that will be used to perform the actual check
+ =cut
+ sub build_check {
+@@ -49,7 +49,7 @@
+ 
+ =head2 build_check_parameters($np)
+ 
+-Given the Nagios::Plugin object created by build_plugin, this method creates the subclass 
++Given the Monitoring::Plugin object created by build_plugin, this method creates the subclass 
+ of perfSONAR_PS::ServiceChecks::Parameters::CheckParamaters that will be passed to the 
+ object created by build_check()
+ =cut
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosDelayCmd.pm
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosDelayCmd.pm
+@@ -1,7 +1,7 @@
+ package perfSONAR_PS::ServiceChecks::Commands::NagiosDelayCmd;
+ 
+ use Mouse;
+-use Nagios::Plugin;
++use Monitoring::Plugin;
+ use Statistics::Descriptive;
+ use perfSONAR_PS::ServiceChecks::DelayCheck;
+ use perfSONAR_PS::ServiceChecks::Parameters::LatencyParameters;
+@@ -36,7 +36,7 @@
+ override 'build_plugin' => sub {
+     my $self = shift;
+     
+-    my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
++    my $np = Monitoring::Plugin->new( shortname => $self->nagios_name,
+                               timeout => $self->timeout,
+                               usage => "Usage: %s <options>" );
+ 
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCmd.pm
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCmd.pm
+@@ -1,7 +1,7 @@
+ package perfSONAR_PS::ServiceChecks::Commands::NagiosEventTypeCmd;
+ 
+ use Mouse;
+-use Nagios::Plugin;
++use Monitoring::Plugin;
+ use Statistics::Descriptive;
+ use perfSONAR_PS::ServiceChecks::SimpleEventTypeCheck;
+ use perfSONAR_PS::ServiceChecks::Parameters::CheckParameters;
+@@ -28,7 +28,7 @@
+ override 'build_plugin' => sub {
+     my $self = shift;
+     
+-    my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
++    my $np = Monitoring::Plugin->new( shortname => $self->nagios_name,
+                                   timeout => $self->timeout,
+                                   usage => "Usage: %s  <options>" );
+ 
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCountCmd.pm
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCountCmd.pm
+@@ -1,7 +1,7 @@
+ package perfSONAR_PS::ServiceChecks::Commands::NagiosEventTypeCountCmd;
+ 
+ use Mouse;
+-use Nagios::Plugin;
++use Monitoring::Plugin;
+ use Statistics::Descriptive;
+ use perfSONAR_PS::ServiceChecks::SimpleEventTypeCheck;
+ use perfSONAR_PS::ServiceChecks::Parameters::CheckParameters;
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosOwdelayCmd.pm
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosOwdelayCmd.pm
+@@ -1,7 +1,7 @@
+ package perfSONAR_PS::ServiceChecks::Commands::NagiosOwdelayCmd;
+ 
+ use Mouse;
+-use Nagios::Plugin;
++use Monitoring::Plugin;
+ use Statistics::Descriptive;
+ use perfSONAR_PS::ServiceChecks::OWDelayCheck;
+ use perfSONAR_PS::ServiceChecks::Parameters::LatencyParameters;
+@@ -54,7 +54,7 @@
+ override 'build_plugin' => sub {
+     my $self = shift;
+     
+-    my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
++    my $np = Monitoring::Plugin->new( shortname => $self->nagios_name,
+                               timeout => $self->timeout,
+                               usage => "Usage: %s <options>" );
+ 
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRecCountCmd.pm
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRecCountCmd.pm
+@@ -1,7 +1,7 @@
+ package perfSONAR_PS::ServiceChecks::Commands::NagiosRecCountCmd;
+ 
+ use Mouse;
+-use Nagios::Plugin;
++use Monitoring::Plugin;
+ use Statistics::Descriptive;
+ use perfSONAR_PS::ServiceChecks::RecordsCountCheck;
+ use perfSONAR_PS::ServiceChecks::Parameters::RecCountParameters;
+@@ -29,7 +29,7 @@
+ 
+ override 'build_plugin' => sub {
+     my $self = shift;
+-    my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
++    my $np = Monitoring::Plugin->new( shortname => $self->nagios_name,
+                               timeout => $self->timeout,
+                               usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -r <number-seconds-in-past> --type (bw|owd|rttd|loss|trcrt) -w|--warning <threshold> -c|--critical <threshold> <options>" );
+ 
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputCmd.pm
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputCmd.pm
+@@ -1,7 +1,7 @@
+ package perfSONAR_PS::ServiceChecks::Commands::NagiosThroughputCmd;
+ 
+ use Mouse;
+-use Nagios::Plugin;
++use Monitoring::Plugin;
+ use Statistics::Descriptive;
+ use perfSONAR_PS::ServiceChecks::ThroughputCheck;
+ use perfSONAR_PS::ServiceChecks::Parameters::ThroughputParameters;
+@@ -27,7 +27,7 @@
+ 
+ override 'build_plugin' => sub {
+     my $self = shift;
+-    my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
++    my $np = Monitoring::Plugin->new( shortname => $self->nagios_name,
+                               timeout => $self->timeout,
+                               usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> <options>" );
+ 
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputOwdelayCmd.pm
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputOwdelayCmd.pm
+@@ -1,7 +1,7 @@
+ package perfSONAR_PS::ServiceChecks::Commands::NagiosThroughputOwdelayCmd;
+ 
+ use Mouse;
+-use Nagios::Plugin;
++use Monitoring::Plugin;
+ use Statistics::Descriptive;
+ use perfSONAR_PS::ServiceChecks::ThroughputCheck;
+ use perfSONAR_PS::ServiceChecks::Parameters::ThroughputParameters;
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosTracerouteCmd.pm
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosTracerouteCmd.pm
+@@ -1,7 +1,7 @@
+ package perfSONAR_PS::ServiceChecks::Commands::NagiosTracerouteCmd;
+ 
+ use Mouse;
+-use Nagios::Plugin;
++use Monitoring::Plugin;
+ use Statistics::Descriptive;
+ use perfSONAR_PS::ServiceChecks::TracerouteCheck;
+ use perfSONAR_PS::ServiceChecks::Parameters::CheckParameters;
+@@ -24,7 +24,7 @@
+ 
+ override 'build_plugin' => sub {
+     my $self = shift;
+-    my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
++    my $np = Monitoring::Plugin->new( shortname => $self->nagios_name,
+                               usage => "Usage: %s  <options>",
+                               timeout => $self->timeout);
+ 
