@@ -11,7 +11,7 @@ Vcs-Browser: https://github.com/perfsonar/nagios
 Package: nagios-plugins-perfsonar
 Architecture: all
 Depends: perl, libperfsonar-servicechecks-perl, libperfsonar-perl,
- libperfsonar-sls-perl, libjson-perl, libnagios-plugin-perl,
+ libperfsonar-sls-perl, libjson-perl, libmonitoring-plugin-perl,
  memcached, lsof, ${misc:Depends}
 Description: perfSONAR Nagios Plugins
  The perfSONAR_PS-Nagios Plugins can be used with Nagios to monitor
@@ -20,7 +20,7 @@ Description: perfSONAR Nagios Plugins
 Package: libperfsonar-servicechecks-perl
 Architecture: all
 Depends: perl, libperfsonar-perl, libcache-memcached-perl,
- libdata-validate-ip-perl, libwww-perl, libmouse-perl, libnagios-plugin-perl,
+ libdata-validate-ip-perl, libwww-perl, libmouse-perl, libmonitoring-plugin-perl,
  libparams-validate-perl, libstatistics-descriptive-perl, libxml-libxml-perl,
  libperfsonar-esmond-perl, ${misc:Depends}
 Description: perfSONAR ServiceChecks
