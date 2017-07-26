@@ -1,3 +1,9 @@
+nagios-plugins-perfsonar (4.0.0.1-2) perfsonar-jessie-release; urgency=low
+
+  * Replace libnagios-plugin-perl dependency by libmonitoring-plugin-perl
+
+ -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Wed, 26 Jul 2017 23:56:11 +0200
+
 nagios-plugins-perfsonar (4.0.0.1-1) perfsonar-jessie-release; urgency=low
 
   * New upstream release
