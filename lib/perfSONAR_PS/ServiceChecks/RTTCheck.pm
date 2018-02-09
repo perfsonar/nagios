@@ -1,4 +1,4 @@
-package perfSONAR_PS::ServiceChecks::DelayCheck;
+package perfSONAR_PS::ServiceChecks::RTTCheck;
 
 use Mouse;
 use perfSONAR_PS::Client::Esmond::ApiConnect;
@@ -54,9 +54,9 @@ sub call_ma {
             $filters->metadata_filters->{$filter_parts[0]} = $filter_parts[1];
         }
     }
-    if($metric =~  /(.+)_delay/){
+    if($metric =~  /(.+)_rtt/){
         $stat = STAT_MAP->{$1};
-        return "Unrecognized delay stat $1" unless $stat;
+        return "Unrecognized rtt stat $1" unless $stat;
     }else{
         return "Unrecognized metric $metric";
     }
