@@ -38,3 +38,12 @@ lib/perfSONAR_PS/ServiceChecks/RecordsCountCheck.pm
 lib/perfSONAR_PS/ServiceChecks/SimpleEventTypeCheck.pm
 lib/perfSONAR_PS/ServiceChecks/ThroughputCheck.pm
 lib/perfSONAR_PS/ServiceChecks/TracerouteCheck.pm
+psconfig/ps-nagios-loss.json
+psconfig/ps-nagios-owdelay.json
+psconfig/ps-nagios-pathmtu.json
+psconfig/ps-nagios-ping-loss.json
+psconfig/ps-nagios-pscheduler-raw.json
+psconfig/ps-nagios-retransmits.json
+psconfig/ps-nagios-rtt.json
+psconfig/ps-nagios-throughput.json
+psconfig/ps-nagios-traceroute.json
