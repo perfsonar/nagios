@@ -21,7 +21,7 @@ dist:
 install:
 	mkdir -p ${ROOTPATH}
 	mkdir -p ${PLUGINPATH}
-	tar ch --exclude=psconfig/* --exclude=etc/* --exclude=*spec --exclude=dependencies --exclude=MANIFEST --exclude=Makefile -T MANIFEST | tar x -C ${ROOTPATH}
+	tar ch --exclude=etc/* --exclude=*spec --exclude=dependencies --exclude=MANIFEST --exclude=Makefile -T MANIFEST | tar x -C ${ROOTPATH}
 	sed -i 's:.Bin/\.\./lib:${LIBPATH}:g' ${ROOTPATH}/bin/*
 	install ${ROOTPATH}/bin/* ${PLUGINPATH}
 	rm -rf ${ROOTPATH}/bin
