@@ -1,11 +1,10 @@
 %define install_base /usr/lib/perfsonar
 %define plugin_base %{_libdir}/nagios/plugins
-%define psconfig_base /usr/lib/perfsonar/psconfig/checks/
 
-%define relnum 0.0.a1
+%define relnum 1 
 
 Name:			nagios-plugins-perfsonar
-Version:		4.1
+Version:		4.0.0.1
 Release:		%{relnum}%{?dist}
 Summary:		perfSONAR Nagios Plugins
 License:		Distributable, see LICENSE
@@ -13,8 +12,6 @@ Group:			Development/Libraries
 URL:			http://www.nagios.org/
 Source0:		nagios-plugins-perfsonar-%{version}.%{relnum}.tar.gz
 BuildRoot:		%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-
-%package
 Requires:		perl
 Requires:		perl(Carp)
 Requires:		perl(Data::UUID)
@@ -49,15 +46,6 @@ Provides:		perl-perfSONAR_PS-Nagios
 The perfSONAR Nagios Plugins can be used with Nagios to monitor the various
 perfSONAR services.
 
-%package utils
-Summary:		perfSONAR Nagios MaDDash Check Plug-ins
-Group:			Applications/Communications
-Requires:		nagios-plugins-perfsonar
-Requires:		perfsonar-psconfig-maddash
-
-%description psconfig
-Check plug-in files for the pSConfig MaDDash agent
-
 %pre
 /usr/sbin/groupadd perfsonar 2> /dev/null || :
 /usr/sbin/useradd -g perfsonar -r -s /sbin/nologin -c "perfSONAR User" -d /tmp perfsonar 2> /dev/null || :
@@ -72,9 +60,6 @@ rm -rf %{buildroot}
 
 make ROOTPATH=%{buildroot}/%{install_base} LIBPATH=%{install_base}/lib PLUGINPATH=%{buildroot}/%{plugin_base} install
 
-install -D -m 0644 psconfig/* %{buildroot}/%{psconfig_base}/
-rm -rf psconfig
-
 %clean
 rm -rf %{buildroot}
 
@@ -87,14 +72,7 @@ chown perfsonar:perfsonar /var/log/perfsonar/nagios
 %attr(0755,perfsonar,perfsonar) %{plugin_base}/*
 %attr(0755,perfsonar,perfsonar) %{install_base}/lib/*
 
-%files psconfig
-%defattr(-,perfsonar,perfsonar,-)
-%{psconfig_base}/*
-
 %changelog
-* Thu Feb 15 2018 andy@es.net 4.1-0.0.a1
-- Added psconfig package
-
 * Thu Jun 18 2014 andy@es.net 3.4-2
 - Added support for new MA
 - Added -4 and -6 options
