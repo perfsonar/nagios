@@ -56,6 +56,7 @@ override 'build_plugin' => sub {
     
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
                               timeout => $self->timeout,
+                              version => $VERSION,
                               usage => "Usage: %s <options>" );
 
     $np->add_arg(spec => "u|url=s",
