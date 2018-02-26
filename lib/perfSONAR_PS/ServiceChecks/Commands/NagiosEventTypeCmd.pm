@@ -6,7 +6,7 @@ use Statistics::Descriptive;
 use perfSONAR_PS::ServiceChecks::SimpleEventTypeCheck;
 use perfSONAR_PS::ServiceChecks::Parameters::CheckParameters;
 
-our $VERSION = 3.4;
+our $VERSION = 4.1;
 
 =head1 NAME
 
@@ -30,6 +30,7 @@ override 'build_plugin' => sub {
     
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
                                   timeout => $self->timeout,
+                                  version => $VERSION,
                                   usage => "Usage: %s  <options>" );
 
     #get arguments
