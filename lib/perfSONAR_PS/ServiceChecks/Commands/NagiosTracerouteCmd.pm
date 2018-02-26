@@ -26,6 +26,7 @@ override 'build_plugin' => sub {
     my $self = shift;
     my $np = Nagios::Plugin->new( shortname => $self->nagios_name,
                               usage => "Usage: %s  <options>",
+                              version => $VERSION,
                               timeout => $self->timeout);
 
     #get arguments
