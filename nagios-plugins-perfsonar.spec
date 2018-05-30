@@ -7,7 +7,7 @@ Name:			nagios-plugins-perfsonar
 Version:		4.1
 Release:		%{relnum}%{?dist}
 Summary:		perfSONAR Nagios Plugins
-License:		Distributable, see LICENSE
+License:		ASL 2.0
 Group:			Development/Libraries
 URL:			http://www.nagios.org/
 Source0:		nagios-plugins-perfsonar-%{version}.%{relnum}.tar.gz
@@ -69,6 +69,7 @@ chown perfsonar:perfsonar /var/log/perfsonar/nagios
 
 %files
 %defattr(-,perfsonar,perfsonar,-)
+%license LICENSE
 %attr(0755,perfsonar,perfsonar) %{plugin_base}/*
 %attr(0755,perfsonar,perfsonar) %{install_base}/lib/*
 
