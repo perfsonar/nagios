@@ -3,7 +3,7 @@ ROOTPATH=/usr/lib/perfsonar
 LIBPATH=${ROOTPATH}/lib
 PLUGINPATH=/usr/lib/nagios/plugins
 VERSION=4.1
-RELEASE=0.0.a1
+RELEASE=0.1.b1
 
 default:
 	@echo No need to build the package. Just run \"make install\"
