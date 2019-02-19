@@ -1,16 +1,17 @@
 %define install_base /usr/lib/perfsonar
 %define plugin_base %{_libdir}/nagios/plugins
 
-%define relnum 1 
+%define perfsonar_auto_version 4.1
+%define perfsonar_auto_relnum 1 
 
 Name:			nagios-plugins-perfsonar
-Version:		4.1
-Release:		%{relnum}%{?dist}
+Version:		%{perfsonar_auto_version}
+Release:		%{perfsonar_auto_relnum}%{?dist}
 Summary:		perfSONAR Nagios Plugins
 License:		ASL 2.0
 Group:			Development/Libraries
 URL:			http://www.nagios.org/
-Source0:		nagios-plugins-perfsonar-%{version}.%{relnum}.tar.gz
+Source0:		nagios-plugins-perfsonar-%{version}.%{perfsonar_auto_relnum}.tar.gz
 BuildRoot:		%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:		perl
 Requires:		perl(Carp)
@@ -51,7 +52,7 @@ perfSONAR services.
 /usr/sbin/useradd -g perfsonar -r -s /sbin/nologin -c "perfSONAR User" -d /tmp perfsonar 2> /dev/null || :
 
 %prep
-%setup -q -n nagios-plugins-perfsonar-%{version}.%{relnum}
+%setup -q -n nagios-plugins-perfsonar-%{version}.%{perfsonar_auto_relnum}
 
 %build
 
