@@ -1,0 +1,13 @@
+Index: nagios/bin/check_lsb-services.sh
+===================================================================
+--- nagios.orig/bin/check_lsb-services.sh	2018-06-26 17:23:52.000000000 +0000
++++ nagios/bin/check_lsb-services.sh	2018-08-13 18:44:14.000000000 +0000
+@@ -39,7 +39,7 @@
+ res=`expr match "$stat" '.*\(not running\.*\)'`
+ 
+ if [[ $res = "" ]]; then
+-  res=`expr match "$stat" '.*\( running\.*\)'`
++  res=`expr match "$stat" '.*\( *running\.*\)'`
+   if [[ $res = "" ]]; then
+     exit $EXIT_CRITICAL
+   else
