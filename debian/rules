@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+	dh $@
+
+# skip Makefile, all files installed manually
+override_dh_auto_install:
+
+# make all scripts executable
+override_dh_install:
+	dh_install
+	chmod +x debian/nagios-plugins-perfsonar/usr/lib/nagios/plugins/*
