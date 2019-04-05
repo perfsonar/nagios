@@ -1,3 +1,9 @@
+nagios-plugins-perfsonar (4.1.7~0-1) perfsonar-patch-release; urgency=low
+
+  * New upstream release
+
+ -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Fri, 05 Apr 2019 11:23:39 +0000
+
 nagios-plugins-perfsonar (4.1-1) perfsonar-release; urgency=low
 
   * New upstream release
