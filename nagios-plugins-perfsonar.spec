@@ -1,8 +1,8 @@
 %define install_base /usr/lib/perfsonar
 %define plugin_base %{_libdir}/nagios/plugins
 
-%define perfsonar_auto_version 4.1
-%define perfsonar_auto_relnum 1 
+%define perfsonar_auto_version 4.2.0
+%define perfsonar_auto_relnum 0.0.a1 
 
 Name:			nagios-plugins-perfsonar
 Version:		%{perfsonar_auto_version}
@@ -33,6 +33,10 @@ Requires:		perl(XML::LibXML)
 Requires:		perl(Cache::Memcached)
 Requires:		perl(Mouse)
 Requires:		perl(JSON::XS)
+Requires:		python
+Requires:		python-pyjq
+Requires:		python-argparse
+Requires:		python-pscheduler
 Requires:		memcached
 Requires:		chkconfig
 Requires:		coreutils
