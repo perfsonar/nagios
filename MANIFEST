@@ -2,6 +2,7 @@ LICENSE
 MANIFEST
 Makefile
 bin/check_delay.pl
+bin/check_esmond
 bin/check_loss.pl
 bin/check_maddash.pl
 bin/check_owdelay.pl
