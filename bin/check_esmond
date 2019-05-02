@@ -4,6 +4,7 @@ import argparse
 import pyjq
 import re
 from pscheduler.psurl import url_get 
+from pscheduler.iso8601 import iso8601_as_timedelta 
 from urlparse import urlparse
 #Python 3
 #from urllib.parse import urlparse
@@ -83,7 +84,7 @@ parser.add_argument('--input-source', help='The input-source of the metadata to 
 parser.add_argument('--input-destination', help='The input-destination of the metadata to query')
 parser.add_argument('--metadata-params', help='A list of custom parameters separated by whitespace used to filter metadata. Items in the list take the form of key=value', nargs='+')
 parser.add_argument('--jq', help='A jq script to apply to individual data results to extract the value on which we want to alarm')
-parser.add_argument('--function', help='The statistical function to apply to the data values', choices=['average', 'minimum', 'maximum'], default='average')
+parser.add_argument('--function', help='The statistical function to apply to the data values', choices=['average', 'minimum', 'maximum', 'count'], default='average')
 parser.add_argument('--timeout', help='Time in seconds to wait for individual queries to complete', type=int, default=60)
 parser.add_argument('--summary-type', help='The summary-type of the metadata to query.', default='base')
 parser.add_argument('--summary-window', help='The summary-window of the metadata to query. Must be specified with --summary-type.')
@@ -177,6 +178,16 @@ for metadata in result:
             val = pyjq.first(args.jq, val, None);
             if val is None:
                 continue
+        if not u'{0}'.format(val).isnumeric():
+            #try to convert ISO8601, if can't continue
+            try:
+                duration = iso8601_as_timedelta(val)
+                if args.verbose:
+                    print "Converting {0} to {1}".format(val, duration.total_seconds())
+                val = duration.total_seconds()
+            except:
+                pass
+                
         data_values.append(val)
 
 #debugging output
@@ -196,6 +207,8 @@ if args.function == 'minimum':
     alarmable_value = min(data_values)
 elif args.function == 'maximum':
     alarmable_value = max(data_values)
+elif args.function == 'count':
+    alarmable_value = len(data_values)
 else:
     #average is default
     alarmable_value = (1.0*sum(data_values))/len(data_values)
