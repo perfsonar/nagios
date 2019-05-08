@@ -82,12 +82,14 @@ parser.add_argument('--tool-name', help='The tool-name of the metadata to query'
 parser.add_argument('--measurement-agent', help='The measurement-agent of the metadata to query')
 parser.add_argument('--input-source', help='The input-source of the metadata to query')
 parser.add_argument('--input-destination', help='The input-destination of the metadata to query')
-parser.add_argument('--metadata-params', help='A list of custom parameters separated by whitespace used to filter metadata. Items in the list take the form of key=value', nargs='+')
+parser.add_argument('--metadata-params', help='Custom filters where the first argument is the field name and the second argument is the value. This option can be specified multiple times.', nargs=2, action='append')
 parser.add_argument('--jq', help='A jq script to apply to individual data results to extract the value on which we want to alarm')
 parser.add_argument('--function', help='The statistical function to apply to the data values', choices=['average', 'minimum', 'maximum', 'count'], default='average')
 parser.add_argument('--timeout', help='Time in seconds to wait for individual queries to complete', type=int, default=60)
 parser.add_argument('--summary-type', help='The summary-type of the metadata to query.', default='base')
 parser.add_argument('--summary-window', help='The summary-window of the metadata to query. Must be specified with --summary-type.')
+parser.add_argument('--units', help='The units to display in the status message next to the value', default="")
+parser.add_argument('--scale', help='Multiple value by this value before checking thresholds and displaying value in status message', type=float)
 parser.add_argument('--verbose', help='Include verbose output (does not adhere to nagios standard)', action='store_true')
 
 args = parser.parse_args()
@@ -113,11 +115,8 @@ if args.input_source:
 if args.input_destination:
     metadata_get_params['input-destination'] = args.input_destination
 if args.metadata_params:
-    for metadata_param in args.metadata_params:
-        kv = metadata_param.split('=')
-        if len(kv) != 2:
-            _unknown("{0} is invalid. --metadata-params must be in the form key=value. ".format(metadata_param))
-        metadata_get_params[kv[0]] = kv[1]
+    for mp in args.metadata_params:
+        metadata_get_params[mp[0]] = mp[1]
 
 #bebugging output
 if args.verbose:
@@ -213,16 +212,22 @@ else:
     #average is default
     alarmable_value = (1.0*sum(data_values))/len(data_values)
 
+#scale value
+if args.scale:
+    alarmable_value = alarmable_value * args.scale
+    
 #debugging output
 if args.verbose:
     print "Value after applying function: {0}\n".format(alarmable_value)
 
+
+    
 #compare result to threholds
 if _is_alarm(args.critical, alarmable_value):
-    _critical("{0} value is {1}".format(args.function, alarmable_value))
+    _critical("{0} value is {1}{2}".format(args.function.capitalize(), alarmable_value, args.units))
 elif _is_alarm(args.warning, alarmable_value):
-    _warning("{0} value is {1}".format(args.function, alarmable_value))
+    _warning("{0} value is {1}{2}".format(args.function.capitalize(), alarmable_value, args.units))
 else:
-    _ok("{0} value is {1}".format(args.function, alarmable_value))
+    _ok("{0} value is {1}{2}".format(args.function.capitalize(), alarmable_value, args.units))
 
 
