@@ -1,8 +1,8 @@
-nagios-plugins-perfsonar (4.2.0~0-1) perfsonar-minor-snapshot; urgency=low
+nagios-plugins-perfsonar (4.2.0~1.b1-1) perfsonar-minor-staging; urgency=low
 
   * New upstream release
 
- -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Fri, 05 Apr 2019 11:31:47 +0000
+ -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Mon, 22 Jul 2019 19:29:50 +0000
 
 nagios-plugins-perfsonar (4.1-1) perfsonar-release; urgency=low
 
