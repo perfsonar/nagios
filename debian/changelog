@@ -1,8 +1,8 @@
-nagios-plugins-perfsonar (4.2.0~5.b2-1) perfsonar-minor-staging; urgency=low
+nagios-plugins-perfsonar (4.2.0-1) perfsonar-minor-staging; urgency=low
 
   * New upstream release
 
- -- Andy Lake <andy@es.net>  Fri, 09 Aug 2019 13:07:21 +0000
+ -- Andy Lake <andy@es.net>  Thu, 15 Aug 2019 01:11:07 +0000
 
 nagios-plugins-perfsonar (4.1-1) perfsonar-release; urgency=low
 
