@@ -1,0 +1,14 @@
+Test-Command: /usr/lib/nagios/plugins/check_toolkit.pl -u http://localhost/toolkit/
+Depends: @, perfsonar-toolkit
+
+Test-Command: /usr/lib/nagios/plugins/check_lsb-services.sh -s owamp-server
+Depends: @, owamp-server
+Restrictions: needs-root
+
+Test-Command: /usr/lib/nagios/plugins/check_pid-services.sh -s owamp-server
+Depends: @, owamp-server
+Restrictions: needs-root
+
+Test-Command: /usr/lib/nagios/plugins/check_lsof-services.sh -s owampd
+Depends: @, owamp-server
+Restrictions: needs-root

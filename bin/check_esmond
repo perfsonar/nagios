@@ -1,0 +1,233 @@
+#!/usr/bin/env python
+
+import argparse
+import pyjq
+import re
+from pscheduler.psurl import url_get 
+from pscheduler.iso8601 import iso8601_as_timedelta 
+from urlparse import urlparse
+#Python 3
+#from urllib.parse import urlparse
+
+PLUGIN_NAME="PS_ESMOND"
+
+########################
+# Utility functions
+def _ok(msg):
+    print "{0} OK - {1}".format(PLUGIN_NAME, msg)
+    exit(0)
+    
+def _warning(msg):
+    print "{0} WARNING - {1}".format(PLUGIN_NAME, msg)
+    exit(1)
+
+def _critical(msg):
+    print "{0} CRITICAL - {1}".format(PLUGIN_NAME, msg)
+    exit(2)
+
+def _unknown(msg):
+    print "{0} UNKNOWN - {1}".format(PLUGIN_NAME, msg)
+    exit(3)
+    
+def _is_alarm(range_str, val):
+    match = re.match("(@)?((-?[0-9.~]+):)?(-?[0-9.~]+)?", range_str)
+    if not match:
+        _unknown("Invalid range given {0}".format(range_str))
+    start = match.group(3)
+    if start is None:
+        start = 0
+    end = match.group(4)
+    invert = match.group(1)
+    
+    if start is None and end is None:
+        _unknown("start or end of threshold must be specified")
+    if start is not None and end is not None and start != '~' and float(start) > float(end):
+        _unknown("start of threshold must be less than end")
+    
+    outside_start = False
+    if start != '~' and val < float(start):
+        outside_start = True
+    
+    outside_end = False    
+    if end is not None and val > float(end):
+        outside_end = True
+    
+    alarm = False
+    if invert and not outside_start and not outside_end:
+        #generate alarm if inside range and invert set
+        alarm = True
+    elif (outside_start or outside_end) and not invert:
+         #generate alarm if outside range and invert NOT set
+         alarm = True
+    
+    #print "start: {0} end: {1} invert: {2} outside_start: {3} outside_end: {4} val: {5}".format(start, end, invert, outside_start, outside_end, val)
+    return alarm
+        
+    
+######
+# Main
+
+# process CLI options
+parser = argparse.ArgumentParser(
+            description='Generic check to query esmond and process result'
+        )
+parser.add_argument('--url', required=True, help='URL of esmond archive to contact')
+parser.add_argument('--time-range', required=True, help='The time range of the data to query in seconds', type=int)
+parser.add_argument('--event-type', required=True, help='The event-type of the data to query')
+parser.add_argument('--critical', required=True, help='The critical threshold as a numeric range in Nagios format')
+parser.add_argument('--warning', required=True, help='The warning threshold as a numeric range in Nagios format')
+parser.add_argument('--source', help='Source of the metadata to query')
+parser.add_argument('--destination', help='The destination of the metadata to query')
+parser.add_argument('--tool-name', help='The tool-name of the metadata to query')
+parser.add_argument('--measurement-agent', help='The measurement-agent of the metadata to query')
+parser.add_argument('--input-source', help='The input-source of the metadata to query')
+parser.add_argument('--input-destination', help='The input-destination of the metadata to query')
+parser.add_argument('--metadata-params', help='Custom filters where the first argument is the field name and the second argument is the value. This option can be specified multiple times.', nargs=2, action='append')
+parser.add_argument('--jq', help='A jq script to apply to individual data results to extract the value on which we want to alarm')
+parser.add_argument('--function', help='The statistical function to apply to the data values', choices=['average', 'minimum', 'maximum', 'count'], default='average')
+parser.add_argument('--timeout', help='Time in seconds to wait for individual queries to complete', type=int, default=60)
+parser.add_argument('--summary-type', help='The summary-type of the metadata to query.', default='base')
+parser.add_argument('--summary-window', help='The summary-window of the metadata to query. Must be specified with --summary-type.')
+parser.add_argument('--units', help='The units to display in the status message next to the value', default="")
+parser.add_argument('--scale', help='Multiple value by this value before checking thresholds and displaying value in status message', type=float)
+parser.add_argument('--verbose', help='Include verbose output (does not adhere to nagios standard)', action='store_true')
+
+args = parser.parse_args()
+
+#sanity check parameters
+if args.summary_window is not None and args.summary_type == 'base':
+    _unknown("You must specify --summary-type using a value other than 'base' when using --summary-window")
+    
+#build esmond query
+metadata_get_params = {}
+metadata_get_params['time-range'] = args.time_range
+metadata_get_params['event-type'] = args.event_type
+if args.source:
+    metadata_get_params['source'] = args.source
+if args.destination:
+    metadata_get_params['destination'] = args.destination
+if args.tool_name:
+    metadata_get_params['tool-name'] = args.tool_name
+if args.measurement_agent:
+    metadata_get_params['measurement-agent'] = args.measurement_agent
+if args.input_source:
+    metadata_get_params['input-source'] = args.input_source
+if args.input_destination:
+    metadata_get_params['input-destination'] = args.input_destination
+if args.metadata_params:
+    for mp in args.metadata_params:
+        metadata_get_params[mp[0]] = mp[1]
+
+#bebugging output
+if args.verbose:
+    print ""
+    print "Querying metadata at URL {0} with params {1}".format(args.url, metadata_get_params)
+
+#Get metadata
+status, result = url_get(args.url, params=metadata_get_params, timeout=args.timeout)
+if args.verbose:
+    print "Status Code: {0}".format(status)
+    print "Result: {0}".format(result)
+    print ""
+if status < 200 or status > 299:
+    _unknown('Error connecting to server to retrieve metadata: {0}'.format(result))
+elif not isinstance(result, (list,)):
+    _unknown('Invalid metadata result retuned. It must return a JSON array.')
+elif len(result) == 0:
+    _unknown('No metadata matches query')
+    
+#look through each metadata object
+metadata_url_obj=urlparse(args.url)
+data_values = []
+for metadata in result:
+    if 'uri' not in metadata:
+        _unknown("Server returned metadata object without 'uri' field'")
+    data_get_params = {}
+    data_get_params['time-range'] = args.time_range
+    data_url = "{0}://{1}{2}{3}/{4}".format(
+                    metadata_url_obj.scheme, 
+                    metadata_url_obj.netloc, 
+                    metadata['uri'],
+                    args.event_type,
+                    args.summary_type
+                )
+    if args.summary_window is not None:
+        data_url = "{0}/{1}".format(data_url,args.summary_window)
+    if args.verbose:
+        print "Querying data at URL {0}".format(data_url)
+    data_status, data_result = url_get(data_url, params=data_get_params, timeout=args.timeout)
+    if args.verbose:
+        print "Status Code: {0}".format(data_result)
+        print "Result: {0}".format(data_status)
+        print ""
+    if status < 200 or status > 299:
+        _unknown('Error connecting to server to retrieve data: {0}'.format(result))
+    elif not isinstance(result, (list,)):
+        _unknown('Invalid data result retuned. It must return a JSON array.')
+    elif len(result) == 0:
+        #if no data in object, just skip
+        continue
+        
+    #loop through all the data and add to list
+    for datum in data_result:
+        val = datum.get('val', None)
+        if val is None:
+            continue
+        if args.jq:
+            val = pyjq.first(args.jq, val, None);
+            if val is None:
+                continue
+        if not u'{0}'.format(val).isnumeric():
+            #try to convert ISO8601, if can't continue
+            try:
+                duration = iso8601_as_timedelta(val)
+                if args.verbose:
+                    print "Converting {0} to {1}".format(val, duration.total_seconds())
+                val = duration.total_seconds()
+            except:
+                pass
+                
+        data_values.append(val)
+
+#debugging output
+if args.verbose:
+    print "Data Values returned:"
+    print data_values 
+    print ""
+    
+#check if we have any data_values
+if len(data_values) == 0:
+    _unknown('Able to connect to server and found matching metadata, but was not able to find any data')
+    
+# apply selected function   
+# TODO: When we move to python 3, use python statistics library 
+alarmable_value = None  
+if args.function == 'minimum':
+    alarmable_value = min(data_values)
+elif args.function == 'maximum':
+    alarmable_value = max(data_values)
+elif args.function == 'count':
+    alarmable_value = len(data_values)
+else:
+    #average is default
+    alarmable_value = (1.0*sum(data_values))/len(data_values)
+
+#scale value
+if args.scale:
+    alarmable_value = alarmable_value * args.scale
+    
+#debugging output
+if args.verbose:
+    print "Value after applying function: {0}\n".format(alarmable_value)
+
+
+    
+#compare result to threholds
+if _is_alarm(args.critical, alarmable_value):
+    _critical("{0} value is {1}{2}".format(args.function.capitalize(), alarmable_value, args.units))
+elif _is_alarm(args.warning, alarmable_value):
+    _warning("{0} value is {1}{2}".format(args.function.capitalize(), alarmable_value, args.units))
+else:
+    _ok("{0} value is {1}{2}".format(args.function.capitalize(), alarmable_value, args.units))
+
+

@@ -1,7 +1,7 @@
 %define install_base /usr/lib/perfsonar
 %define plugin_base %{_libdir}/nagios/plugins
 
-%define perfsonar_auto_version 4.1.6
+%define perfsonar_auto_version 4.2.0
 %define perfsonar_auto_relnum 1
 
 Name:			nagios-plugins-perfsonar
@@ -33,6 +33,10 @@ Requires:		perl(XML::LibXML)
 Requires:		perl(Cache::Memcached)
 Requires:		perl(Mouse)
 Requires:		perl(JSON::XS)
+Requires:		python
+Requires:		python-pyjq
+Requires:		python-argparse
+Requires:		python-pscheduler
 Requires:		memcached
 Requires:		chkconfig
 Requires:		coreutils
@@ -48,7 +52,7 @@ The perfSONAR Nagios Plugins can be used with Nagios to monitor the various
 perfSONAR services.
 
 %pre
-/usr/sbin/groupadd perfsonar 2> /dev/null || :
+/usr/sbin/groupadd -r perfsonar 2> /dev/null || :
 /usr/sbin/useradd -g perfsonar -r -s /sbin/nologin -c "perfSONAR User" -d /tmp perfsonar 2> /dev/null || :
 
 %prep
