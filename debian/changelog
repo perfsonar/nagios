@@ -1,8 +1,8 @@
-nagios-plugins-perfsonar (4.2.1~a1.0-1) perfsonar-4.2-snapshot; urgency=low
+nagios-plugins-perfsonar (4.2.1-1) perfsonar-4.2; urgency=low
 
   * New upstream version.
 
- -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Sun, 25 Aug 2019 19:14:48 +0000
+ -- perfSONAR developers <debian@perfsonar.net>  Fri, 27 Sep 2019 13:17:25 -0400
 
 nagios-plugins-perfsonar (4.2.0-1) perfsonar-minor-staging; urgency=low
 
