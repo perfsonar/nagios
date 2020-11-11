@@ -35,7 +35,6 @@ Requires:		perl(Mouse)
 Requires:		perl(JSON::XS)
 Requires:		python3
 Requires:		python3-pyjq
-Requires:		python3-argparse
 Requires:		python3-pscheduler
 Requires:		memcached
 Requires:		chkconfig
