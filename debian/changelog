@@ -1,6 +1,7 @@
 nagios-plugins-perfsonar (4.3.2~a1.0-1) perfsonar-4.3-snapshot; urgency=low
 
   * New upstream version.
+  * Adding dependency to python3, python3-pyjq and python3-pscheduler.
 
  -- Antoine Delvaux <antoine.delvaux@man.poznan.pl>  Sun, 15 Nov 2020 21:06:28 +0000
 
