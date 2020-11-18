@@ -1,4 +1,11 @@
 nagios-plugins-perfsonar (4.4.0~a1.0-1) perfsonar-4.4-snapshot; urgency=low\n\n  * New upstream version.\n\n -- perfSONAR developers <debian@perfsonar.net>  Tue, 03 Nov 2020 14:10:27 +0000\n
+nagios-plugins-perfsonar (4.3.2-1) perfsonar-4.3; urgency=low
+
+  * New upstream version.
+  * Adding dependency to python3, python3-pyjq and python3-pscheduler.
+
+ -- perfSONAR developers <debian@perfsonar.net>  Wed, 18 Nov 2020 15:43:40 +0000
+
 nagios-plugins-perfsonar (4.3.0-1) perfsonar-4.3; urgency=low
 
   * New upstream version.

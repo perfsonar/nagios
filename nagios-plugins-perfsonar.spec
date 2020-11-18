@@ -33,10 +33,9 @@ Requires:		perl(XML::LibXML)
 Requires:		perl(Cache::Memcached)
 Requires:		perl(Mouse)
 Requires:		perl(JSON::XS)
-Requires:		python
-Requires:		python-pyjq
-Requires:		python-argparse
-Requires:		python-pscheduler
+Requires:		python3
+Requires:		python3-pyjq
+Requires:		python3-pscheduler
 Requires:		memcached
 Requires:		chkconfig
 Requires:		coreutils

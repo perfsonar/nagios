@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import pyjq
 import re
 from pscheduler.psurl import url_get 
 from pscheduler.iso8601 import iso8601_as_timedelta 
-from urlparse import urlparse
+from urllib.parse import urlparse
 #Python 3
 #from urllib.parse import urlparse
 
@@ -14,19 +14,19 @@ PLUGIN_NAME="PS_ESMOND"
 ########################
 # Utility functions
 def _ok(msg):
-    print "{0} OK - {1}".format(PLUGIN_NAME, msg)
+    print("{0} OK - {1}".format(PLUGIN_NAME, msg))
     exit(0)
     
 def _warning(msg):
-    print "{0} WARNING - {1}".format(PLUGIN_NAME, msg)
+    print("{0} WARNING - {1}".format(PLUGIN_NAME, msg))
     exit(1)
 
 def _critical(msg):
-    print "{0} CRITICAL - {1}".format(PLUGIN_NAME, msg)
+    print("{0} CRITICAL - {1}".format(PLUGIN_NAME, msg))
     exit(2)
 
 def _unknown(msg):
-    print "{0} UNKNOWN - {1}".format(PLUGIN_NAME, msg)
+    print("{0} UNKNOWN - {1}".format(PLUGIN_NAME, msg))
     exit(3)
     
 def _is_alarm(range_str, val):
@@ -120,18 +120,18 @@ if args.metadata_params:
 
 #bebugging output
 if args.verbose:
-    print ""
-    print "Querying metadata at URL {0} with params {1}".format(args.url, metadata_get_params)
+    print("")
+    print("Querying metadata at URL {0} with params {1}".format(args.url, metadata_get_params))
 
 #Get metadata
 status, result = url_get(args.url, params=metadata_get_params, timeout=args.timeout)
 if args.verbose:
-    print "Status Code: {0}".format(status)
-    print "Result: {0}".format(result)
-    print ""
+    print("Status Code: {0}".format(status))
+    print("Result: {0}".format(result))
+    print("")
 if status < 200 or status > 299:
     _unknown('Error connecting to server to retrieve metadata: {0}'.format(result))
-elif not isinstance(result, (list,)):
+elif not isinstance(result, list):
     _unknown('Invalid metadata result retuned. It must return a JSON array.')
 elif len(result) == 0:
     _unknown('No metadata matches query')
@@ -154,15 +154,15 @@ for metadata in result:
     if args.summary_window is not None:
         data_url = "{0}/{1}".format(data_url,args.summary_window)
     if args.verbose:
-        print "Querying data at URL {0}".format(data_url)
+        print("Querying data at URL {0}".format(data_url))
     data_status, data_result = url_get(data_url, params=data_get_params, timeout=args.timeout)
     if args.verbose:
-        print "Status Code: {0}".format(data_result)
-        print "Result: {0}".format(data_status)
-        print ""
+        print("Status Code: {0}".format(data_result))
+        print("Result: {0}".format(data_status))
+        print("")
     if status < 200 or status > 299:
         _unknown('Error connecting to server to retrieve data: {0}'.format(result))
-    elif not isinstance(result, (list,)):
+    elif not isinstance(result, list):
         _unknown('Invalid data result retuned. It must return a JSON array.')
     elif len(result) == 0:
         #if no data in object, just skip
@@ -177,12 +177,12 @@ for metadata in result:
             val = pyjq.first(args.jq, val, None);
             if val is None:
                 continue
-        if not u'{0}'.format(val).isnumeric():
+        if not '{0}'.format(val).isnumeric():
             #try to convert ISO8601, if can't continue
             try:
                 duration = iso8601_as_timedelta(val)
                 if args.verbose:
-                    print "Converting {0} to {1}".format(val, duration.total_seconds())
+                    print("Converting {0} to {1}".format(val, duration.total_seconds()))
                 val = duration.total_seconds()
             except:
                 pass
@@ -191,9 +191,9 @@ for metadata in result:
 
 #debugging output
 if args.verbose:
-    print "Data Values returned:"
-    print data_values 
-    print ""
+    print("Data Values returned:")
+    print(data_values) 
+    print("")
     
 #check if we have any data_values
 if len(data_values) == 0:
@@ -218,7 +218,7 @@ if args.scale:
     
 #debugging output
 if args.verbose:
-    print "Value after applying function: {0}\n".format(alarmable_value)
+    print("Value after applying function: {0}\n".format(alarmable_value))
 
 
     
