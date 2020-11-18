@@ -2,10 +2,9 @@ Source: nagios-plugins-perfsonar
 Section: perl
 Priority: extra
 Maintainer: perfSONAR developers <debian@perfsonar.net>
-Uploaders: Antoine Delvaux <antoine.delvaux@man.poznan.pl>,
- Valentin Vidic <Valentin.Vidic@CARNet.hr>
+Uploaders: Antoine Delvaux <antoine.delvaux@man.poznan.pl>
 Build-Depends: debhelper (>= 9), quilt
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 Homepage: http://www.perfsonar.net
 Vcs-Git: https://github.com/perfsonar/nagios.git
 Vcs-Browser: https://github.com/perfsonar/nagios
@@ -14,6 +13,7 @@ Package: nagios-plugins-perfsonar
 Architecture: all
 Depends: perl, libperfsonar-servicechecks-perl, libperfsonar-perl,
  libperfsonar-sls-perl, libjson-perl, libmonitoring-plugin-perl,
+ python3, python3-pyjq, python3-pscheduler,
  memcached, lsof, ${misc:Depends}
 Description: perfSONAR Nagios Plugins
  The perfSONAR_PS-Nagios Plugins can be used with Nagios to monitor
