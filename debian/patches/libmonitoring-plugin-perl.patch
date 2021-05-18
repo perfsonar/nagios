@@ -1,5 +1,5 @@
---- a/bin/check_maddash.pl	2021-03-17 01:10:30.832218305 +0000
-+++ b/bin/check_maddash.pl	2021-03-17 01:10:31.648233979 +0000
+--- a/bin/check_maddash.pl	2021-05-18 13:02:02.769696231 +0000
++++ b/bin/check_maddash.pl	2021-05-18 13:02:08.724773832 +0000
 @@ -1,6 +1,6 @@
  #!/usr/bin/perl
  
@@ -17,8 +17,8 @@
                                timeout => 30,
                                usage => "Usage: %s <options>" );
  
---- a/bin/check_sls.pl	2021-03-17 01:10:30.832218305 +0000
-+++ b/bin/check_sls.pl	2021-03-17 01:10:31.648233979 +0000
+--- a/bin/check_sls.pl	2021-05-18 13:02:02.769696231 +0000
++++ b/bin/check_sls.pl	2021-05-18 13:02:08.724773832 +0000
 @@ -4,7 +4,7 @@
  
  use FindBin qw($Bin);
@@ -37,8 +37,8 @@
  	shortname => 'check_sls',
  	timeout   => 60,
  	usage     =>
---- a/bin/check_toolkit.pl	2021-03-17 01:10:30.832218305 +0000
-+++ b/bin/check_toolkit.pl	2021-03-17 01:10:31.648233979 +0000
+--- a/bin/check_toolkit.pl	2021-05-18 13:02:02.769696231 +0000
++++ b/bin/check_toolkit.pl	2021-05-18 13:02:08.724773832 +0000
 @@ -4,12 +4,12 @@
  
  use FindBin qw($Bin);
@@ -54,8 +54,8 @@
  	shortname => 'check_toolkit',
  	timeout   => 60,
  	usage     =>
---- a/dependencies	2021-03-17 01:10:30.832218305 +0000
-+++ b/dependencies	2021-03-17 01:10:31.648233979 +0000
+--- a/dependencies	2021-05-18 13:02:02.773696283 +0000
++++ b/dependencies	2021-05-18 13:02:08.724773832 +0000
 @@ -20,7 +20,7 @@
  Log::Log4perl
  Moose
@@ -65,8 +65,8 @@
  Net::DNS
  Net::Ping
  NetAddr::IP
---- a/doc/README.txt	2021-03-17 01:10:30.832218305 +0000
-+++ b/doc/README.txt	2021-03-17 01:10:31.656234133 +0000
+--- a/doc/README.txt	2021-05-18 13:02:02.773696283 +0000
++++ b/doc/README.txt	2021-05-18 13:02:08.727773871 +0000
 @@ -34,7 +34,7 @@
      (+)Data::Validate::IP
      (+)LWP::Simple
@@ -76,8 +76,8 @@
      (+)Params::Validate
      (+)Statistics::Descriptive
      (+)XML::LibXML
---- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosCmd.pm	2021-03-17 01:10:30.832218305 +0000
-+++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosCmd.pm	2021-03-17 01:10:31.656234133 +0000
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosCmd.pm	2021-05-18 13:02:02.773696283 +0000
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosCmd.pm	2021-05-18 13:02:08.727773871 +0000
 @@ -1,8 +1,8 @@
  package perfSONAR_PS::ServiceChecks::Commands::NagiosCmd;
  
@@ -116,8 +116,8 @@
  of perfSONAR_PS::ServiceChecks::Parameters::CheckParamaters that will be passed to the 
  object created by build_check()
  =cut
---- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRTTCmd.pm	2021-03-17 01:10:30.832218305 +0000
-+++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRTTCmd.pm	2021-03-17 01:10:31.657234152 +0000
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRTTCmd.pm	2021-05-18 13:02:02.773696283 +0000
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRTTCmd.pm	2021-05-18 13:02:08.729773897 +0000
 @@ -1,7 +1,7 @@
  package perfSONAR_PS::ServiceChecks::Commands::NagiosRTTCmd;
  
@@ -136,8 +136,8 @@
                                timeout => $self->timeout,
                                version => $VERSION,
                                usage => "Usage: %s <options>" );
---- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCmd.pm	2021-03-17 01:10:30.832218305 +0000
-+++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCmd.pm	2021-03-17 01:10:31.659234190 +0000
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCmd.pm	2021-05-18 13:02:02.773696283 +0000
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCmd.pm	2021-05-18 13:02:08.730773910 +0000
 @@ -1,7 +1,7 @@
  package perfSONAR_PS::ServiceChecks::Commands::NagiosEventTypeCmd;
  
@@ -156,8 +156,8 @@
                                    timeout => $self->timeout,
                                    version => $VERSION,
                                    usage => "Usage: %s  <options>" );
---- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCountCmd.pm	2021-03-17 01:10:30.832218305 +0000
-+++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCountCmd.pm	2021-03-17 01:10:31.660234210 +0000
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCountCmd.pm	2021-05-18 13:02:02.773696283 +0000
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosEventTypeCountCmd.pm	2021-05-18 13:02:08.731773923 +0000
 @@ -1,7 +1,7 @@
  package perfSONAR_PS::ServiceChecks::Commands::NagiosEventTypeCountCmd;
  
@@ -167,8 +167,8 @@
  use Statistics::Descriptive;
  use perfSONAR_PS::ServiceChecks::SimpleEventTypeCheck;
  use perfSONAR_PS::ServiceChecks::Parameters::CheckParameters;
---- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosOwdelayCmd.pm	2021-03-17 01:10:30.832218305 +0000
-+++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosOwdelayCmd.pm	2021-03-17 01:10:31.661234229 +0000
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosOwdelayCmd.pm	2021-05-18 13:02:02.773696283 +0000
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosOwdelayCmd.pm	2021-05-18 13:02:08.733773949 +0000
 @@ -1,7 +1,7 @@
  package perfSONAR_PS::ServiceChecks::Commands::NagiosOwdelayCmd;
  
@@ -187,8 +187,8 @@
                                timeout => $self->timeout,
                                version => $VERSION,
                                usage => "Usage: %s <options>" );
---- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRecCountCmd.pm	2021-03-17 01:10:30.832218305 +0000
-+++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRecCountCmd.pm	2021-03-17 01:10:31.662234248 +0000
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRecCountCmd.pm	2021-05-18 13:02:02.775696309 +0000
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRecCountCmd.pm	2021-05-18 13:02:08.734773962 +0000
 @@ -1,7 +1,7 @@
  package perfSONAR_PS::ServiceChecks::Commands::NagiosRecCountCmd;
  
@@ -207,8 +207,8 @@
                                timeout => $self->timeout,
                                version => $VERSION,
                                usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -r <number-seconds-in-past> --type (bw|owd|rttd|loss|trcrt) -w|--warning <threshold> -c|--critical <threshold> <options>" );
---- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputCmd.pm	2021-03-17 01:10:30.832218305 +0000
-+++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputCmd.pm	2021-03-17 01:10:31.663234267 +0000
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputCmd.pm	2021-05-18 13:02:02.775696309 +0000
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputCmd.pm	2021-05-18 13:02:08.735773975 +0000
 @@ -1,7 +1,7 @@
  package perfSONAR_PS::ServiceChecks::Commands::NagiosThroughputCmd;
  
@@ -227,8 +227,8 @@
                                timeout => $self->timeout,
                                version => $VERSION,
                                usage => "Usage: %s -u|--url <service-url> -s|--source <source-addr> -d|--destination <dest-addr> -r <number-seconds-in-past> -w|--warning <threshold> -c|--critical <threshold> <options>" );
---- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputOwdelayCmd.pm	2021-03-17 01:10:30.832218305 +0000
-+++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputOwdelayCmd.pm	2021-03-17 01:10:31.664234286 +0000
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputOwdelayCmd.pm	2021-05-18 13:02:02.775696309 +0000
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputOwdelayCmd.pm	2021-05-18 13:02:08.736773988 +0000
 @@ -1,7 +1,7 @@
  package perfSONAR_PS::ServiceChecks::Commands::NagiosThroughputOwdelayCmd;
  
@@ -238,8 +238,8 @@
  use Statistics::Descriptive;
  use perfSONAR_PS::ServiceChecks::ThroughputCheck;
  use perfSONAR_PS::ServiceChecks::Parameters::ThroughputParameters;
---- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosTracerouteCmd.pm	2021-03-17 01:10:30.832218305 +0000
-+++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosTracerouteCmd.pm	2021-03-17 01:10:31.664234286 +0000
+--- a/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosTracerouteCmd.pm	2021-05-18 13:02:02.775696309 +0000
++++ b/lib/perfSONAR_PS/ServiceChecks/Commands/NagiosTracerouteCmd.pm	2021-05-18 13:02:08.737774001 +0000
 @@ -1,7 +1,7 @@
  package perfSONAR_PS::ServiceChecks::Commands::NagiosTracerouteCmd;
  
