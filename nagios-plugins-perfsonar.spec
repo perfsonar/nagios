@@ -1,7 +1,7 @@
 %define install_base /usr/lib/perfsonar
 %define plugin_base %{_libdir}/nagios/plugins
 
-%define perfsonar_auto_version 4.4.1
+%define perfsonar_auto_version 4.4.2
 %define perfsonar_auto_relnum 1
 
 Name:			nagios-plugins-perfsonar
