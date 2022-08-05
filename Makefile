@@ -1,26 +1,39 @@
-PACKAGE=nagios-plugins-perfsonar
-ROOTPATH=/usr/lib/perfsonar
-LIBPATH=${ROOTPATH}/lib
-PLUGINPATH=/usr/lib/nagios/plugins
-PERFSONAR_AUTO_VERSION=5.0.0
-PERFSONAR_AUTO_RELNUM=0.b1.1
-VERSION=${PERFSONAR_AUTO_VERSION}
-RELEASE=${PERFSONAR_AUTO_RELNUM}
+#
+# Makefile for unibuild top-level directory
+#
 
-default:
-	@echo No need to build the package. Just run \"make install\"
-
-dist:
-	mkdir /tmp/$(PACKAGE)-$(VERSION).$(RELEASE)
-	tar ch -T MANIFEST | tar x -C /tmp/$(PACKAGE)-$(VERSION).$(RELEASE)
-	tar czf $(PACKAGE)-$(VERSION).$(RELEASE).tar.gz -C /tmp $(PACKAGE)-$(VERSION).$(RELEASE)
-	rm -rf /tmp/$(PACKAGE)-$(VERSION).$(RELEASE)
+default: build
 
 
-install:
-	mkdir -p ${ROOTPATH}
-	mkdir -p ${PLUGINPATH}
-	tar ch --exclude=etc/* --exclude=*spec --exclude=dependencies --exclude=MANIFEST --exclude=LICENSE --exclude=Makefile -T MANIFEST | tar x -C ${ROOTPATH}
-	sed -i 's:.Bin/\.\./lib:${LIBPATH}:g' ${ROOTPATH}/bin/*
-	install ${ROOTPATH}/bin/* ${PLUGINPATH}
-	rm -rf ${ROOTPATH}/bin
+BUILD_LOG=unibuild-log
+
+ifdef START
+UNIBUILD_OPTS += --start $(START)
+endif
+ifdef STOP
+UNIBUILD_OPTS += --stop $(STOP)
+endif
+
+# The shell command below does the equivalent of BASH's pipefail
+# within the confines of POSIX.
+# Source: https://unix.stackexchange.com/a/70675/15184
+build:
+	rm -rf $(BUILD_LOG)
+	((( \
+	(unibuild build $(UNIBUILD_OPTS); echo $$? >&3) \
+	| tee $(BUILD_LOG) >&4) 3>&1) \
+	| (read XS; exit $$XS) \
+	) 4>&1
+TO_CLEAN += $(BUILD_LOG)
+
+
+uninstall:
+	unibuild make --reverse $@
+
+fresh: uninstall build
+
+clean:
+	unibuild make $(UNIBUILD_OPTS) clean
+	unibuild clean
+	rm -rf $(TO_CLEAN)
+	find . -name '*~' | xargs rm -f

@@ -1,0 +1,21 @@
+changequote(<!,!>)dnl
+changecom()dnl
+#
+# This file determines the order in which the package in the
+# repository are built.
+#
+# See the documentation at https://github.com/perfsonar/unibuild for
+# more information.
+#
+
+# Build dependencies
+submodules/bundles/common
+submodules/minor-packages/perl-CGI-Ajax
+submodules/minor-packages/perl-Data-Validate-Domain
+submodules/minor-packages/perl-Data-Validate-IP
+submodules/minor-packages/perl-Hash-Merge
+submodules/minor-packages/perl-IPC-DirQueue
+submodules/minor-packages/perl-JSON-Validator
+submodules/minor-packages/perl-Net-Traceroute
+submodules/perl-shared/libperfsonar
+nagios-plugins-perfsonar
