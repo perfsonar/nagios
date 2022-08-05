@@ -7,3 +7,6 @@
 [submodule "submodules/bundles"]
 	path = submodules/bundles
 	url = https://github.com/perfsonar/bundles
+[submodule "submodules/pscheduler"]
+	path = submodules/pscheduler
+	url = https://github.com/perfsonar/pscheduler
