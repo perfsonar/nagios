@@ -1,3 +1,4 @@
+%global debug_package %{nil}
 %define install_base /usr/lib/perfsonar
 %define plugin_base %{_libdir}/nagios/plugins
 
@@ -11,7 +12,7 @@ Summary:		perfSONAR Nagios Plugins
 License:		ASL 2.0
 Group:			Development/Libraries
 URL:			http://www.nagios.org/
-Source0:		nagios-plugins-perfsonar-%{version}.%{perfsonar_auto_relnum}.tar.gz
+Source0:		nagios-plugins-perfsonar-%{version}.tar.gz
 BuildRoot:		%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 Requires:		perl
 Requires:		perl(Carp)
@@ -55,7 +56,7 @@ perfSONAR services.
 /usr/sbin/useradd -g perfsonar -r -s /sbin/nologin -c "perfSONAR User" -d /tmp perfsonar 2> /dev/null || :
 
 %prep
-%setup -q -n nagios-plugins-perfsonar-%{version}.%{perfsonar_auto_relnum}
+%setup -q -n nagios-plugins-perfsonar-%{version}
 
 %build
 
@@ -78,9 +79,5 @@ chown perfsonar:perfsonar /var/log/perfsonar/nagios
 %attr(0755,perfsonar,perfsonar) %{install_base}/lib/*
 
 %changelog
-* Thu Jun 18 2014 andy@es.net 3.4-2
-- Added support for new MA
-- Added -4 and -6 options
-
 * Fri Jan 11 2013 asides@es.net 3.3-1
 - 3.3 beta release
