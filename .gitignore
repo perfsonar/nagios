@@ -2,3 +2,10 @@
 .DS_Store
 # Ignore quilt cache directory
 .pc/
+#Ignore vs_code
+.vscode
+# Ignore unibuild files 
+unibuild-log
+unibuild-work/
+unibuild-repo/
+
