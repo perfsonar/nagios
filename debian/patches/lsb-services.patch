@@ -1,5 +1,5 @@
---- a/bin/check_lsb-services.sh	2022-05-26 11:22:36.247694436 -0400
-+++ b/bin/check_lsb-services.sh	2022-05-26 11:22:37.305570215 -0400
+--- a/bin/check_lsb-services.sh	2022-10-27 10:34:33.177068506 -0400
++++ b/bin/check_lsb-services.sh	2022-10-27 10:34:34.290980247 -0400
 @@ -39,7 +39,7 @@
  res=`expr match "$stat" '.*\(not running\.*\)'`
  
