@@ -54,17 +54,6 @@
  	shortname => 'check_toolkit',
  	timeout   => 60,
  	usage     =>
---- a/dependencies	2022-10-27 10:34:33.180918185 -0400
-+++ b/dependencies	2022-10-27 10:34:34.480382663 -0400
-@@ -20,7 +20,7 @@
- Log::Log4perl
- Moose
- Moose::Util::TypeConstraints
--Nagios::Plugin
-+Monitoring::Plugin
- Net::DNS
- Net::Ping
- NetAddr::IP
 --- a/doc/README.txt	2022-10-27 10:34:33.181247978 -0400
 +++ b/doc/README.txt	2022-10-27 10:34:34.480880621 -0400
 @@ -34,7 +34,7 @@
