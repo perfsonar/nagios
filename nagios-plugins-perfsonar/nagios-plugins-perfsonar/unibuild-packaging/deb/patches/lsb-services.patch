@@ -1,14 +1,3 @@
---- a/bin/check_lsb-services.sh	2022-10-27 10:34:33.177068506 -0400
-+++ b/bin/check_lsb-services.sh	2022-10-27 10:34:34.290980247 -0400
-@@ -39,7 +39,7 @@
- res=`expr match "$stat" '.*\(not running\.*\)'`
- 
- if [[ $res = "" ]]; then
--  res=`expr match "$stat" '.*\( running\.*\)'`
-+  res=`expr match "$stat" '.*\( *running\.*\)'`
-   if [[ $res = "" ]]; then
-     exit $EXIT_CRITICAL
-   else
 --- a/bin/check_lsb-services.sh	2023-03-21 15:10:47.812845925 -0400
 +++ b/bin/check_lsb-services.sh	2023-03-21 15:10:48.354459443 -0400
 @@ -39,7 +39,7 @@
