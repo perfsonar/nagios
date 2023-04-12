@@ -9,14 +9,3 @@
    if [[ $res = "" ]]; then
      exit $EXIT_CRITICAL
    else
---- a/bin/check_lsb-services.sh	2023-04-10 09:22:50.187282248 -0400
-+++ b/bin/check_lsb-services.sh	2023-04-10 09:22:50.643626390 -0400
-@@ -39,7 +39,7 @@
- res=`expr match "$stat" '.*\(not running\.*\)'`
- 
- if [[ $res = "" ]]; then
--  res=`expr match "$stat" '.*\( running\.*\)'`
-+  res=`expr match "$stat" '.*\( *running\.*\)'`
-   if [[ $res = "" ]]; then
-     exit $EXIT_CRITICAL
-   else
