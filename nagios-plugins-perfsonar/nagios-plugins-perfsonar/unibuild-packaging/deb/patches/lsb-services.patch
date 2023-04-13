@@ -1,7 +1,7 @@
 Index: b/bin/check_lsb-services.sh
 ===================================================================
---- a/bin/check_lsb-services.sh	2023-04-12 15:42:14.567419000 +0200
-+++ b/bin/check_lsb-services.sh	2023-04-12 15:42:53.468697557 +0200
+--- a/bin/check_lsb-services.sh	2023-04-13 18:55:25.107763969 -0400
++++ b/bin/check_lsb-services.sh	2023-04-13 18:55:25.631458706 -0400
 @@ -39,7 +39,7 @@
  res=`expr match "$stat" '.*\(not running\.*\)'`
  
