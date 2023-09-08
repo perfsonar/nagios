@@ -35,7 +35,11 @@ Requires:		perl(Cache::Memcached)
 Requires:		perl(Mouse)
 Requires:		perl(JSON::XS)
 Requires:		python3
+%if 0%{?el9}
+python-pyjq
+%else
 Requires:		python3-pyjq
+%endif
 Requires:		python3-pscheduler
 Requires:		memcached
 Requires:		chkconfig
