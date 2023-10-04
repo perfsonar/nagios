@@ -3,7 +3,7 @@
 %define plugin_base %{_libdir}/nagios/plugins
 
 %define perfsonar_auto_version 5.0.5
-%define perfsonar_auto_relnum 1
+%define perfsonar_auto_relnum 2
 
 Name:			nagios-plugins-perfsonar
 Version:		%{perfsonar_auto_version}
