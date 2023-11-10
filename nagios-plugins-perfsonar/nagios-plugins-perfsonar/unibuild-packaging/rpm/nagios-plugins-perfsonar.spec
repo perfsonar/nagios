@@ -37,10 +37,11 @@ Requires:		perl(JSON::XS)
 Requires:		python3
 %if 0%{?el9}
 Requires:		python-pyjq
+Requires:		python-pscheduler
 %else
 Requires:		python3-pyjq
-%endif
 Requires:		python3-pscheduler
+%endif
 Requires:		memcached
 Requires:		chkconfig
 Requires:		coreutils
