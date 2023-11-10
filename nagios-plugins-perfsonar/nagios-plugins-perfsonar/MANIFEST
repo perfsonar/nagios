@@ -10,6 +10,7 @@ bin/check_path_mtu.pl
 bin/check_ping_loss.pl
 bin/check_pscheduler_raw.pl
 bin/check_retransmits.pl
+bin/check_rtt.pl
 bin/check_sls.pl
 bin/check_throughput.pl
 bin/check_toolkit.pl
@@ -26,6 +27,7 @@ lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputCmd.pm
 lib/perfSONAR_PS/ServiceChecks/Commands/NagiosThroughputOwdelayCmd.pm
 lib/perfSONAR_PS/ServiceChecks/Commands/NagiosTracerouteCmd.pm
 lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRecCountCmd.pm
+lib/perfSONAR_PS/ServiceChecks/Commands/NagiosRTTCmd.pm
 lib/perfSONAR_PS/ServiceChecks/DelayCheck.pm
 lib/perfSONAR_PS/ServiceChecks/EsmondOWDelayCheck.pm
 lib/perfSONAR_PS/ServiceChecks/EsmondRecCountCheck.pm
@@ -37,6 +39,7 @@ lib/perfSONAR_PS/ServiceChecks/Parameters/LatencyParameters.pm
 lib/perfSONAR_PS/ServiceChecks/Parameters/RecCountParameters.pm
 lib/perfSONAR_PS/ServiceChecks/Parameters/ThroughputParameters.pm
 lib/perfSONAR_PS/ServiceChecks/RecordsCountCheck.pm
+lib/perfSONAR_PS/ServiceChecks/RTTCheck.pm
 lib/perfSONAR_PS/ServiceChecks/SimpleEventTypeCheck.pm
 lib/perfSONAR_PS/ServiceChecks/ThroughputCheck.pm
 lib/perfSONAR_PS/ServiceChecks/TracerouteCheck.pm
