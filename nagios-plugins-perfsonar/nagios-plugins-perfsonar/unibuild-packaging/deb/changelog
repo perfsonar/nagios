@@ -1,8 +1,8 @@
-nagios-plugins-perfsonar (5.0.7~a1.0-1) perfsonar-5.0-snapshot; urgency=low
+nagios-plugins-perfsonar (5.0.7-1) perfsonar-5.0; urgency=low
 
   * New upstream version.
 
- -- perfSONAR developers <debian@perfsonar.net>  Sat, 11 Nov 2023 06:59:56 -0500
+ -- perfSONAR developers <debian@perfsonar.net>  Mon, 11 Dec 2023 10:47:39 -0500
 
 nagios-plugins-perfsonar (5.0.6~a1.0-1) perfsonar-5.0-snapshot; urgency=low
 
