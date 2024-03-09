@@ -23,7 +23,7 @@ ONLY with REST API
 
 =cut
 
-use constant DEFAULT_MEMD_ADDR => '127.0.0.1:11211';
+use constant DEFAULT_MEMD_ADDR => 'localhost:11211';
 use constant DEFAULT_MEMD_EXP => 300;
 use constant DEFAULT_MEMD_COMPRESS_THRESH => 1000000;
 
@@ -66,7 +66,7 @@ override 'build_plugin' => sub {
                  help => "threshold of bandwidth (in " . $self->units . ") that leads to CRITICAL status",
                  required => 1 );
     $np->add_arg(spec => "m|memcached=s",
-                 help => "Address of server in form <address>:<port> where memcached runs. Set to 'none' if want to disable memcached. Defaults to 127.0.0.1:11211",
+                 help => "Address of server in form <address>:<port> where memcached runs. Set to 'none' if want to disable memcached. Defaults to localhost:11211",
                  required => 0 );
     $np->add_arg(spec => "e|memcachedexp=s",
                  help => "Time when you want memcached data to expire in seconds. Defaults to lesser of 5 minutes and -r option if not set.",
